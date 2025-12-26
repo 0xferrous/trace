@@ -1,0 +1,25 @@
+[package]
+name = "foundry-interactive-traces"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ansi-to-tui = "7.0.0"
+clap = { version = "4.5.53", features = ["derive"] }
+color-eyre = "0.6.5"
+crossterm = "0.29.0"
+eyre = "0.6.12"
+foundry-evm-traces = { git = "https://github.com/foundry-rs/foundry" }
+ratatui = "0.29.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.147"
+revm-inspectors = { git = "https://github.com/paradigmxyz/revm-inspectors" }
+
+[patch.'https://github.com/foundry-rs/foundry']
+foundry-evm-traces = { path = "../foundry/crates/evm/traces" }
+
+[patch.'https://github.com/paradigmxyz/revm-inspectors']
+revm-inspectors = { path = "../open-source/revm-inspectors" }
+
+[patch.crates-io]
+revm-inspectors = { path = "../open-source/revm-inspectors" }
