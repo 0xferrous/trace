@@ -1,16 +1,14 @@
 use std::io;
 
-use crossterm::event::{self, Event, KeyCode};
+use crossterm::event::{self, Event, KeyCode, ModifierKeyCode};
 use foundry_evm_traces::CallTraceArena;
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::{DefaultTerminal, Frame, widgets::Paragraph};
 
-use crate::{
-    traces::TracesState,
-    widget::{TraceWidget, TraceWidgetState},
-};
+use crate::traces::TracesState;
 
 pub struct Tui {
     trace_state: TracesState,
+    scroll_offset: (u16, u16),
     exit: bool,
 }
 
@@ -18,6 +16,7 @@ impl Tui {
     pub fn new(trace_data: CallTraceArena) -> Self {
         Self {
             exit: false,
+            scroll_offset: (0, 0),
             trace_state: TracesState::new(trace_data),
         }
     }
@@ -33,7 +32,9 @@ impl Tui {
 
     fn draw(&self, frame: &mut Frame) -> io::Result<()> {
         let result: TuiResult<_, _> = self.trace_state.to_text().into();
-        frame.render_widget(result.map_err()?, frame.area());
+        let text_widget = result.map_err()?;
+        let para = Paragraph::new(text_widget).scroll((self.scroll_offset.0, self.scroll_offset.1));
+        frame.render_widget(para, frame.area());
         Ok(())
     }
 
@@ -43,24 +44,37 @@ impl Tui {
         if let Event::Key(key) = event::read()? {
             match key.code {
                 KeyCode::Char('q') => self.exit = true,
+                KeyCode::Char('j') => {
+                    self.trace_state.step_over();
+                }
+                KeyCode::Char('k') => {
+                    self.trace_state.reverse_step_over();
+                }
+                KeyCode::Char('h') => {
+                    self.trace_state.step_out();
+                }
+                KeyCode::Char('l') => {
+                    self.trace_state.step_into();
+                }
+                KeyCode::Char(' ') => {
+                    self.trace_state.toggle_collapse();
+                }
                 KeyCode::Up => {
                     // if self.viewport_offset == 0 {
-                    //     self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1)
+                    self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1)
                     // } else {
                     //     self.viewport_offset -= 1;
                     // }
-                    // self.trace_widget.lock().unwrap().prev();
                 }
                 KeyCode::Down => {
-                    // if self.viewport_offset == height - 1 {
-                    //     self.scroll_offset.0 += 1
+                    // if self.viewport_offset == (height - 1) {
+                    self.scroll_offset.0 += 1
                     // } else {
                     //     self.viewport_offset += 1;
                     // }
-                    // self.trace_widget.lock().unwrap().next();
                 }
-                // KeyCode::Left => self.scroll_offset.1 = self.scroll_offset.1.saturating_sub(1),
-                // KeyCode::Right => self.scroll_offset.1 += 1,
+                KeyCode::Left => self.scroll_offset.1 = self.scroll_offset.1.saturating_sub(1),
+                KeyCode::Right => self.scroll_offset.1 += 1,
                 _ => {}
             }
         }

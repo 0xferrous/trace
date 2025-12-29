@@ -2724,25 +2724,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundry-interactive-traces"
-version = "0.1.0"
-dependencies = [
- "alloy-primitives",
- "ansi-to-tui",
- "clap",
- "color-eyre",
- "crossterm 0.29.0",
- "eyre",
- "foundry-evm-traces",
- "ratatui",
- "rayon",
- "revm",
- "revm-inspectors",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "foundry-linking"
 version = "1.5.1"
 dependencies = [
@@ -6949,6 +6930,25 @@ name = "tower-service"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
+
+[[package]]
+name = "traces-tui"
+version = "0.1.0"
+dependencies = [
+ "alloy-primitives",
+ "ansi-to-tui",
+ "clap",
+ "color-eyre",
+ "crossterm 0.29.0",
+ "eyre",
+ "foundry-evm-traces",
+ "ratatui",
+ "rayon",
+ "revm",
+ "revm-inspectors",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "tracing"

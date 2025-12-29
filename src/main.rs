@@ -4,7 +4,6 @@ use std::{io, path::PathBuf};
 
 mod traces;
 mod tui;
-mod widget;
 
 use tui::Tui;
 

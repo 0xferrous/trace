@@ -1,7 +1,7 @@
 use alloy_primitives::hex;
-use foundry_evm_traces::CallTraceArena;
+use foundry_evm_traces::{CallTraceArena, CallTraceNode};
 use ratatui::{
-    style::{Color, Style},
+    style::{Color, Style, Stylize},
     text::{Line, Span, Text},
 };
 use revm::interpreter::InstructionResult;
@@ -15,8 +15,13 @@ const BRANCH: &str = "  ├─ ";
 const CALL: &str = "→ ";
 const RETURN: &str = "← ";
 
-const SYM_COLLAPSED: &str = "⏵";
-const SYM_EXPANDED: &str = "⏷";
+// const SYM_COLLAPSED: &str = "⏵";
+// const SYM_COLLAPSED: &str = "⊟";
+// const SYM_EXPANDED: &str = "⊞";
+// const SYM_EXPANDED: &str = "⏷";
+
+const SYM_COLLAPSED: &str = "◇";
+const SYM_EXPANDED: &str = "◆";
 
 pub struct TracesState {
     data: CallTraceArena,
@@ -36,6 +41,72 @@ impl TracesState {
 
     pub fn to_text(&self) -> eyre::Result<Text<'static>> {
         TraceTextWriter::new().to_text(self)
+    }
+
+    fn node(&self, idx: usize) -> &CallTraceNode {
+        &self.data.nodes()[idx]
+    }
+
+    /// Step into the first child of the current call node
+    pub fn step_into(&mut self) -> bool {
+        let curr_node = self.node(self.curr_idx);
+        if !curr_node.children.is_empty() {
+            self.curr_idx = curr_node.children[0];
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Step over the current call node i.e. move to the immediate next sibling of current node
+    pub fn step_over(&mut self) -> bool {
+        self.delta_sibling_idx(1)
+    }
+
+    /// Step over the current call node i.e. move to the immediate previous sibling of current node
+    pub fn reverse_step_over(&mut self) -> bool {
+        self.delta_sibling_idx(-1)
+    }
+
+    fn delta_sibling_idx(&mut self, idx: isize) -> bool {
+        let curr_node = self.node(self.curr_idx);
+
+        if let Some(parent) = curr_node.parent {
+            let parent_node = self.node(parent);
+            let curr_child_idx = parent_node
+                .children
+                .iter()
+                .position(|&idx| idx == self.curr_idx)
+                .expect("step_over: curr_idx not found in parent_node.children");
+            let len = parent_node.children.len();
+            let target_idx = curr_child_idx as isize + idx;
+            if target_idx < 0 || target_idx >= len as isize {
+                false
+            } else {
+                self.curr_idx = parent_node.children[target_idx as usize];
+                true
+            }
+        } else {
+            // can't step over at root node
+            false
+        }
+    }
+
+    /// Step out of the current call node i.e. move to the parent of the current node
+    pub fn step_out(&mut self) -> bool {
+        let curr_node = self.node(self.curr_idx);
+        if let Some(parent) = curr_node.parent {
+            self.curr_idx = parent;
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Toggle the collapsed state of the current call node
+    pub fn toggle_collapse(&mut self) {
+        let idx = self.curr_idx;
+        self.collapsed[idx] = !self.collapsed[idx];
     }
 }
 
@@ -75,8 +146,8 @@ impl TraceTextWriter {
     }
 
     fn make_indentation(&self) -> String {
-        let mut buf = String::from("  ");
-        for _ in 1..self.indentation_level {
+        let mut buf = String::from("");
+        for _ in 0..self.indentation_level {
             buf.push_str(PIPE);
         }
         buf
@@ -135,12 +206,20 @@ impl TraceTextWriter {
 
         // All call nodes are collapsible (they all have at least a footer)
         // Replace "  ├─ " with "  ⏷ " or "  ⏵ " to align with branch position
-        let sym = if is_collapsed { SYM_COLLAPSED } else { SYM_EXPANDED };
+        let sym = if is_collapsed {
+            SYM_COLLAPSED
+        } else {
+            SYM_EXPANDED
+        };
         spans.push(Span::raw(format!("  {sym} ")));
 
         // Trace header
         self.write_trace_header_spans(&mut spans, &node.trace)?;
-        self.lines.push(Line::from(spans));
+        let mut line = Line::from(spans);
+        if idx == state.curr_idx {
+            line = line.on_gray();
+        }
+        self.lines.push(line);
 
         // Only write children and footer if not collapsed
         if !is_collapsed {
@@ -300,7 +379,10 @@ impl TraceTextWriter {
                 spans.push(Span::styled(topic_parts.join(", "), log_style));
             }
 
-            spans.push(Span::styled(format!(" data: {}", log.raw_log.data), log_style));
+            spans.push(Span::styled(
+                format!(" data: {}", log.raw_log.data),
+                log_style,
+            ));
         }
 
         self.lines.push(Line::from(spans));
@@ -338,7 +420,10 @@ impl TraceTextWriter {
                     .as_ref()
                     .map(|v| format!("({})", v.join(", ")))
                     .unwrap_or_default();
-                spans.push(Span::raw(format!("[{gas_used}] {}{args_str}", call.func_name)));
+                spans.push(Span::raw(format!(
+                    "[{gas_used}] {}{args_str}",
+                    call.func_name
+                )));
                 self.lines.push(Line::from(spans));
 
                 let end_item_idx = self.write_items_until(state, node_idx, item_idx + 1, |item_idx| {
