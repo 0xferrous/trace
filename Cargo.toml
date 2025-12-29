@@ -1,9 +1,10 @@
 [package]
-name = "foundry-interactive-traces"
+name = "traces-tui"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+alloy-primitives = "1.4"
 ansi-to-tui = "7.0.0"
 clap = { version = "4.5.53", features = ["derive"] }
 color-eyre = "0.6.5"
@@ -11,9 +12,11 @@ crossterm = "0.29.0"
 eyre = "0.6.12"
 foundry-evm-traces = { git = "https://github.com/foundry-rs/foundry" }
 ratatui = "0.29.0"
+rayon = "1.11.0"
+revm = "33.0.0"
+revm-inspectors = { version = "0.33.2", features = ["serde-skip-trace-steps"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.147"
-revm-inspectors = { git = "https://github.com/paradigmxyz/revm-inspectors" }
 
 [patch.'https://github.com/foundry-rs/foundry']
 foundry-evm-traces = { path = "../foundry/crates/evm/traces" }
