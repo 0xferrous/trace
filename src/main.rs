@@ -1,5 +1,5 @@
 use clap::Parser;
-use foundry_evm_traces::{CallTraceArena, TraceWriter};
+use revm_inspectors::tracing::{CallTraceArena, TraceWriter};
 use std::{io, path::PathBuf};
 
 mod traces;

@@ -1,12 +1,14 @@
 use alloy_primitives::hex;
-use foundry_evm_traces::{CallTraceArena, CallTraceNode};
 use ratatui::{
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
 };
 use revm::interpreter::InstructionResult;
-use revm_inspectors::tracing::types::{
-    CallKind, DecodedCallData, DecodedTraceStep, TraceMemberOrder,
+use revm_inspectors::tracing::{
+    CallTraceArena,
+    types::{
+        CallKind, CallTrace, CallTraceNode, DecodedCallData, DecodedTraceStep, TraceMemberOrder,
+    },
 };
 
 const PIPE: &str = "  │ ";
@@ -128,7 +130,7 @@ impl TraceTextWriter {
         Ok(Text::from(self.lines))
     }
 
-    fn trace_style(trace: &foundry_evm_traces::CallTrace) -> Style {
+    fn trace_style(trace: &CallTrace) -> Style {
         let color = if trace.success {
             Color::Green
         } else {
@@ -243,7 +245,7 @@ impl TraceTextWriter {
     fn write_trace_header_spans(
         &self,
         spans: &mut Vec<Span<'static>>,
-        trace: &foundry_evm_traces::CallTrace,
+        trace: &CallTrace,
     ) -> eyre::Result<()> {
         let style = Self::trace_style(trace);
         let kind_style = Self::trace_kind_style();
@@ -312,7 +314,7 @@ impl TraceTextWriter {
     fn write_trace_footer_spans(
         &self,
         spans: &mut Vec<Span<'static>>,
-        trace: &foundry_evm_traces::CallTrace,
+        trace: &CallTrace,
     ) -> eyre::Result<()> {
         let style = Self::trace_style(trace);
 

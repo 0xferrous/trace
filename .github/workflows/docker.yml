@@ -1,0 +1,68 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build Docker image
+        run: nix build .#docker-image
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          IMAGE_TAG="${REGISTRY}/${IMAGE_NAME}:latest"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${{ github.ref_name }}"
+            IMAGE_TAG="${REGISTRY}/${IMAGE_NAME}:${VERSION}"
+          fi
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Load and push Docker image
+        if: github.event_name != 'pull_request'
+        run: |
+          docker load < result
+          docker tag traces-tui:latest ${{ steps.meta.outputs.image-tag }}
+          docker push ${{ steps.meta.outputs.image-tag }}
+
+          # Also push latest tag on main/master branch
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            docker tag traces-tui:latest ${REGISTRY}/${IMAGE_NAME}:latest
+            docker push ${REGISTRY}/${IMAGE_NAME}:latest
+          fi

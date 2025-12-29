@@ -1,8 +1,8 @@
 use std::io;
 
-use crossterm::event::{self, Event, KeyCode, ModifierKeyCode};
-use foundry_evm_traces::CallTraceArena;
+use crossterm::event::{self, Event, KeyCode};
 use ratatui::{DefaultTerminal, Frame, widgets::Paragraph};
+use revm_inspectors::tracing::CallTraceArena;
 
 use crate::traces::TracesState;
 
@@ -38,8 +38,8 @@ impl Tui {
         Ok(())
     }
 
-    fn handle_events(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        let height = terminal.size()?.height;
+    fn handle_events(&mut self, _terminal: &mut DefaultTerminal) -> io::Result<()> {
+        // let height = terminal.size()?.height;
 
         if let Event::Key(key) = event::read()? {
             match key.code {
