@@ -6,6 +6,10 @@ edition.workspace = true
 [dependencies]
 eyre.workspace = true
 ratzilla.workspace = true
-# tui-app.workspace = true
-# getrandom = { version = "0.3", features = ["wasm_js"] }
-# getrandom_v2 = { package = "getrandom", version = "0.2.16", features = ["js"] }
+tui-app = { workspace = true, features = ["ratzilla"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom_v2 = { package = "getrandom", version = "0.2.16", features = ["js"] }
+revm-inspectors.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+web-sys = { version = "0.3.83", features = ["console"] }

@@ -1,37 +1,27 @@
-use std::{io, marker::PhantomData};
+use std::io;
 
-use ratatui::{Frame, Terminal, prelude::Backend, widgets::Paragraph};
+use ratatui::{Frame, widgets::Paragraph};
 use revm_inspectors::tracing::CallTraceArena;
 
 use crate::traces::TracesState;
 
-pub struct Tui<B>
-where
-    B: Backend,
-    B::Error: From<TuiError<B>>,
-{
+pub struct Tui {
     trace_state: TracesState,
     scroll_offset: (u16, u16),
     exit: bool,
-    _backend: PhantomData<Terminal<B>>,
 }
 
-impl<B> Tui<B>
-where
-    B: Backend,
-    B::Error: From<TuiError<B>>,
-{
+impl Tui {
     pub fn new(trace_data: CallTraceArena) -> Self {
         Self {
             exit: false,
             scroll_offset: (0, 0),
             trace_state: TracesState::new(trace_data),
-            _backend: Default::default(),
         }
     }
 
-    pub fn draw(&self, frame: &mut Frame) -> TuiResult<(), B> {
-        let result: TuiResult<_, _> = self.trace_state.to_text().map_err(|err| err.into());
+    pub fn draw(&self, frame: &mut Frame) -> TuiResult<()> {
+        let result: TuiResult<_> = self.trace_state.to_text().map_err(|err| err.into());
         let text_widget = result?;
         let para = Paragraph::new(text_widget).scroll((self.scroll_offset.0, self.scroll_offset.1));
         frame.render_widget(para, frame.area());
@@ -81,18 +71,17 @@ where
     }
 }
 
-pub type TuiResult<T, B> = Result<T, TuiError<B>>;
+pub type TuiResult<T> = Result<T, TuiError>;
 
 #[derive(thiserror::Error, Debug)]
-pub enum TuiError<B: Backend> {
-    #[error("Error drawing TUI: {0}")]
-    DrawError(B::Error),
+pub enum TuiError {
     #[error("Error reading TUI: {0}")]
     IoError(#[from] io::Error),
     #[error("Error: {0}")]
     ArbitraryError(#[from] eyre::Error),
 }
 
+#[derive(Debug)]
 pub enum KeyCode {
     Up,
     Down,
@@ -101,36 +90,27 @@ pub enum KeyCode {
     Char(char),
 }
 
-#[cfg(feature = "crossterm")]
-mod crossterm {
-    use std::io::{self, Write};
-
-    use ratatui::prelude::CrosstermBackend;
-
-    use crate::tui::TuiError;
-
-    impl TryFrom<crossterm::event::KeyEvent> for super::KeyCode {
-        type Error = String;
-
-        fn try_from(value: crossterm::event::KeyEvent) -> Result<Self, Self::Error> {
-            match value.code {
-                crossterm::event::KeyCode::Up => Ok(Self::Up),
-                crossterm::event::KeyCode::Down => Ok(Self::Down),
-                crossterm::event::KeyCode::Left => Ok(Self::Left),
-                crossterm::event::KeyCode::Right => Ok(Self::Right),
-                crossterm::event::KeyCode::Char(c) => Ok(Self::Char(c)),
-                _ => Err(format!("Unsupported key code: {:?}", value.code)),
-            }
+impl From<TuiError> for std::io::Error {
+    fn from(err: TuiError) -> Self {
+        match err {
+            TuiError::IoError(err) => err,
+            TuiError::ArbitraryError(report) => io::Error::other(format!("{}", report)),
         }
     }
+}
 
-    impl<W: Write> From<TuiError<CrosstermBackend<W>>> for std::io::Error {
-        fn from(err: TuiError<CrosstermBackend<W>>) -> Self {
-            match err {
-                TuiError::DrawError(err) => err,
-                TuiError::IoError(err) => err,
-                TuiError::ArbitraryError(report) => io::Error::other(format!("{}", report)),
-            }
+#[cfg(feature = "crossterm")]
+impl TryFrom<crossterm::event::KeyEvent> for KeyCode {
+    type Error = String;
+
+    fn try_from(value: crossterm::event::KeyEvent) -> Result<Self, Self::Error> {
+        match value.code {
+            crossterm::event::KeyCode::Up => Ok(Self::Up),
+            crossterm::event::KeyCode::Down => Ok(Self::Down),
+            crossterm::event::KeyCode::Left => Ok(Self::Left),
+            crossterm::event::KeyCode::Right => Ok(Self::Right),
+            crossterm::event::KeyCode::Char(c) => Ok(Self::Char(c)),
+            _ => Err(format!("Unsupported key code: {:?}", value.code)),
         }
     }
 }

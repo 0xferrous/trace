@@ -29,5 +29,6 @@ tui-app = { path = "crates/tui-app" }
 # [patch.'https://github.com/paradigmxyz/revm-inspectors']
 # revm-inspectors = { path = "../open-source/revm-inspectors" }
 #
-# [patch.crates-io]
+[patch.crates-io]
 # revm-inspectors = { path = "../open-source/revm-inspectors" }
+ratzilla = { git = "https://github.com/0xferrous/ratzilla", rev = "6dba88156a8a44890a7f2f06fdca1c9d63e94104" }

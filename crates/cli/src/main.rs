@@ -1,13 +1,7 @@
 use clap::Parser;
-use ratatui::{
-    crossterm::event::{self, Event},
-    prelude::CrosstermBackend,
-};
+use ratatui::crossterm::event::{self, Event};
 use revm_inspectors::tracing::{CallTraceArena, TraceWriter};
-use std::{
-    io::{self, Stdout},
-    path::PathBuf,
-};
+use std::{io, path::PathBuf};
 use tui_app::Tui;
 
 #[derive(clap::Parser, Debug)]
@@ -61,7 +55,7 @@ fn main() -> eyre::Result<()> {
         Command::Tui(args) => {
             let data = args.data()?;
             let mut terminal = ratatui::init();
-            let mut tui = Tui::<CrosstermBackend<Stdout>>::new(data);
+            let mut tui = Tui::new(data);
             while !tui.exit() {
                 terminal.try_draw(|f| tui.draw(f))?;
                 let event = event::read()?;

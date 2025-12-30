@@ -1,42 +1,51 @@
-use std::{cell::RefCell, io, rc::Rc};
+use ratzilla::ratatui::Terminal;
+use std::io;
+use web_sys::{console, wasm_bindgen::JsValue};
 
-use ratzilla::ratatui::{
-    Terminal,
-    layout::Alignment,
-    style::Color,
-    widgets::{Block, Paragraph},
-};
+use ratzilla::{DomBackend, WebRenderer};
+use tui_app::{Tui, tui::KeyCode};
 
-use ratzilla::{DomBackend, WebRenderer, event::KeyCode};
+const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
 
 fn main() -> io::Result<()> {
-    let counter = Rc::new(RefCell::new(0));
     let backend = DomBackend::new()?;
     let terminal = Terminal::new(backend)?;
 
+    let data = serde_json::from_str(EXAMPLE_TRACE)?;
+    let (sender, receiver) = std::sync::mpsc::channel::<KeyCode>();
+    let mut tui = Tui::new(data);
+
     terminal.on_key_event({
-        let counter_cloned = counter.clone();
+        let sender_cloned = sender.clone();
         move |key_event| {
-            if key_event.code == KeyCode::Char(' ') {
-                let mut counter = counter_cloned.borrow_mut();
-                *counter += 1;
+            if let Ok(key_code) = key_event.code.try_into() {
+                // console::log_1(&JsValue::from_str(&format!(
+                //     "received key event: {key_code:?}"
+                // )));
+                sender_cloned
+                    .send(key_code)
+                    .inspect_err(|e| {
+                        console::error_1(&JsValue::from_str(&format!(
+                            "Error sending key event: {e:#?}"
+                        )))
+                    })
+                    .ok();
             }
         }
     });
 
     terminal.draw_web(move |f| {
-        let counter = counter.borrow();
-        f.render_widget(
-            Paragraph::new(format!("Count: {counter}"))
-                .alignment(Alignment::Center)
-                .block(
-                    Block::bordered()
-                        .title("Ratzilla")
-                        .title_alignment(Alignment::Center)
-                        .border_style(Color::Yellow),
-                ),
-            f.area(),
-        );
+        tui.draw(f)
+            .inspect_err(|err| {
+                console::error_1(&JsValue::from_str(&format!("Error drawing TUI: {err:#?}")))
+            })
+            .ok();
+        if let Ok(key_code) = receiver.try_recv() {
+            // console::log_1(&JsValue::from_str(&format!(
+            //     "received key event: {key_code:?}"
+            // )));
+            tui.on_key(key_code);
+        }
     });
 
     Ok(())
