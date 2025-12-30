@@ -1,0 +1,8 @@
+[package]
+name = "traces-web"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+eyre.workspace = true
+ratzilla = "0.2.0"

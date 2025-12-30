@@ -3,3 +3,4 @@ test*.json
 .direnv
 .envrc
 result
+dist

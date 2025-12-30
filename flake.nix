@@ -17,12 +17,15 @@
           src = craneLib.cleanCargoSource ./.;
           strictDeps = true;
           nativeBuildInputs = with pkgs; [ pkg-config ];
+          pname = "traces-cli";
+          version = "0.1.0";
         };
 
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
         traces-tui = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
+          cargoExtraArgs = "-p traces-cli";
         });
 
         docker-image = pkgs.dockerTools.buildLayeredImage {
@@ -38,14 +41,17 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            rustc
-            cargo
-            rust-analyzer
-            rustfmt
-            clippy
+            # rustc
+            # cargo
+            # rust-analyzer
+            # rustfmt
+            # clippy
+            trunk
+            wasm-bindgen-cli_0_2_99
           ];
 
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+          CFLAGS_wasm32_unknown_unknown="-mno-reference-types";
         };
 
         packages = {
