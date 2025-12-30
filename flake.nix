@@ -30,7 +30,7 @@
           tag = "latest";
           contents = [ traces-tui ];
           config = {
-            Cmd = [ "${traces-tui}/bin/traces-tui" ];
+            Cmd = [ "${traces-tui}/bin/traces-cli" ];
             Env = [ "PATH=${pkgs.lib.makeBinPath [ traces-tui ]}" ];
           };
         };

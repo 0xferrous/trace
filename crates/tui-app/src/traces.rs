@@ -3,7 +3,6 @@ use ratatui::{
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
 };
-use revm::interpreter::InstructionResult;
 use revm_inspectors::tracing::{
     CallTraceArena,
     types::{
@@ -320,7 +319,7 @@ impl TraceTextWriter {
 
         spans.push(Span::styled(RETURN.to_string(), style));
         spans.push(Span::styled(
-            format!("[{:?}]", trace.status.unwrap_or(InstructionResult::Stop)),
+            format!("[{:?}]", trace.status.unwrap_or_default()),
             style,
         ));
 

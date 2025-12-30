@@ -1,11 +1,7 @@
 use clap::Parser;
 use revm_inspectors::tracing::{CallTraceArena, TraceWriter};
 use std::{io, path::PathBuf};
-
-mod traces;
-mod tui;
-
-use tui::Tui;
+use tui_app::Tui;
 
 #[derive(clap::Parser, Debug)]
 struct Args {
