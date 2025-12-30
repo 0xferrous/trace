@@ -5,12 +5,12 @@ edition = "2024"
 
 [dependencies]
 alloy-primitives = "1.4"
-ansi-to-tui = "7.0.0"
+ansi-to-tui = "8.0.0"
 clap = { version = "4.5.53", features = ["derive"] }
 color-eyre = "0.6.5"
 crossterm = "0.29.0"
 eyre = "0.6.12"
-ratatui = "0.29.0"
+ratatui = "0.30.0"
 rayon = "1.11.0"
 revm = "33.0.0"
 revm-inspectors = { version = "0.33.2" }
