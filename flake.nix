@@ -47,7 +47,7 @@
             # rustfmt
             # clippy
             trunk
-            wasm-bindgen-cli_0_2_99
+            # wasm-bindgen-cli_0_2_99
           ];
 
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";

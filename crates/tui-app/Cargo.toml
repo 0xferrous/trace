@@ -5,7 +5,14 @@ edition.workspace = true
 
 [dependencies]
 alloy-primitives.workspace = true
-crossterm.workspace = true
 eyre.workspace = true
 ratatui.workspace = true
 revm-inspectors.workspace = true
+thiserror = "2.0.17"
+getrandom = {version = "0.2.16", features = ["js"]}
+ratzilla = { workspace = true, optional = true }
+crossterm = {workspace = true, optional	= true}
+
+[features]
+crossterm = ["dep:crossterm", "ratatui/crossterm"]
+ratzilla = ["dep:ratzilla"]

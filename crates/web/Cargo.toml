@@ -1,8 +1,11 @@
 [package]
-name = "traces-web"
+name = "tui-web"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
 eyre.workspace = true
-ratzilla = "0.2.0"
+ratzilla.workspace = true
+# tui-app.workspace = true
+# getrandom = { version = "0.3", features = ["wasm_js"] }
+# getrandom_v2 = { package = "getrandom", version = "0.2.16", features = ["js"] }
