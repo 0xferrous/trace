@@ -5,13 +5,15 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     crane.url = "github:ipetkov/crane";
+    fenix.url = "github:nix-community/fenix";
   };
 
-  outputs = { self, nixpkgs, flake-utils, crane }:
+  outputs = { self, nixpkgs, flake-utils, crane, fenix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         craneLib = crane.mkLib pkgs;
+        fenixPackages = fenix.packages.${system};
 
         commonArgs = {
           src = craneLib.cleanCargoSource ./.;
@@ -48,6 +50,10 @@
             # clippy
             trunk
             # wasm-bindgen-cli_0_2_99
+            (fenixPackages.combine [
+              fenixPackages.stable.toolchain
+              fenixPackages.targets.wasm32-unknown-unknown.stable.toolchain
+            ])
           ];
 
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
