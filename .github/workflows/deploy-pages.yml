@@ -28,7 +28,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Build
-        run: nix develop --command trunk build --config ./crates/web/trunk.toml --release index.html
+        run: nix develop --command trunk build --config ./crates/web/trunk.toml --release true index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
