@@ -29,6 +29,7 @@ pub struct TracesState {
     data: CallTraceArena,
     collapsed: Vec<bool>,
     curr_idx: usize,
+    order_idx: Option<usize>,
 }
 
 impl TracesState {
@@ -38,11 +39,12 @@ impl TracesState {
             data,
             collapsed: vec![false; len],
             curr_idx: 0,
+            order_idx: None,
         }
     }
 
     pub fn to_text(&self) -> eyre::Result<Text<'static>> {
-        TraceTextWriter::new().to_text(self)
+        TraceTextWriter::new().write_to_text(self)
     }
 
     fn node(&self, idx: usize) -> &CallTraceNode {
@@ -110,6 +112,124 @@ impl TracesState {
         let idx = self.curr_idx;
         self.collapsed[idx] = !self.collapsed[idx];
     }
+
+    fn curr_node(&self) -> &CallTraceNode {
+        &self.data.nodes()[self.curr_idx]
+    }
+
+    /// keeps going up the parent node until reaching root or until delta sibling idx succeeds
+    fn delta_sibling_idx_or_step_over_recurse(&mut self, idx: isize) -> bool {
+        while !self.delta_sibling_idx(idx) {
+            if let Some(parent) = self.curr_node().parent {
+                self.curr_idx = parent;
+                self.order_idx = None;
+            } else {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn set_order_idx(&mut self, order_idx: usize) {
+        let ordering = self.curr_node().ordering[order_idx];
+        match ordering {
+            TraceMemberOrder::Call(idx) => {
+                self.curr_idx = self.curr_node().children[idx];
+                self.order_idx = None;
+            }
+            _ => self.order_idx = Some(order_idx),
+        }
+    }
+
+    pub fn down(&mut self) -> bool {
+        let curr_collapsed = self.collapsed[self.curr_idx];
+        if curr_collapsed {
+            return self.delta_sibling_idx_or_step_over_recurse(1);
+        }
+
+        let curr_node = self.node(self.curr_idx);
+        let items_len = curr_node.ordering.len();
+        if let Some(order_idx) = self.order_idx {
+            // scrolling through the items
+            let next_idx = order_idx + 1;
+            if next_idx < items_len {
+                // go to next id
+                self.set_order_idx(next_idx);
+                true
+            } else {
+                self.delta_sibling_idx_or_step_over_recurse(1)
+            }
+        } else if items_len == 0 {
+            // no items, step over
+            self.delta_sibling_idx_or_step_over_recurse(1)
+        } else {
+            // some items, step into items
+            self.set_order_idx(0);
+            true
+        }
+    }
+
+    pub fn up(&mut self) -> bool {
+        if let Some(order_idx) = self.order_idx {
+            if order_idx == 0 {
+                // no more items, step over to the call
+                self.order_idx = None;
+                true
+            } else {
+                // step to previous item
+                self.set_order_idx(order_idx - 1);
+                true
+            }
+        } else if self.delta_sibling_idx(-1) {
+            // recursively go to the last uncollapsed child call's last item
+            let mut idx = self.curr_idx;
+
+            while !self.collapsed[idx] && !self.node(idx).children.is_empty() {
+                idx = self.node(idx).children[self.node(idx).children.len() - 1];
+            }
+
+            let node = &self.data.nodes()[idx];
+            if !self.collapsed[idx] && !node.ordering.is_empty() {
+                self.set_order_idx(node.ordering.len() - 1);
+            }
+            self.curr_idx = idx;
+
+            true
+        } else if let Some(parent) = self.curr_node().parent {
+            self.curr_idx = parent;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn curr_idx(&self) -> usize {
+        self.curr_idx
+    }
+
+    pub fn order_idx(&self) -> Option<usize> {
+        self.order_idx
+    }
+
+    pub fn curr_address(&self) -> String {
+        let mut addr = Vec::new();
+        let mut idx = self.curr_idx;
+        while let Some(parent) = self.data.nodes()[idx].parent {
+            let parent_node = &self.data.nodes()[parent];
+            let child_idx = parent_node
+                .children
+                .iter()
+                .position(|child_idx| *child_idx == idx)
+                .expect("curr_idx not found in parent_node.children");
+            addr.push(child_idx.to_string());
+
+            idx = parent_node.idx;
+        }
+        addr.push("0".into());
+
+        addr.reverse();
+        addr.join(".")
+    }
 }
 
 struct TraceTextWriter {
@@ -125,7 +245,7 @@ impl TraceTextWriter {
         }
     }
 
-    fn to_text(mut self, state: &TracesState) -> eyre::Result<Text<'static>> {
+    fn write_to_text(mut self, state: &TracesState) -> eyre::Result<Text<'static>> {
         self.write_node(state, 0)?;
         Ok(Text::from(self.lines))
     }
@@ -167,7 +287,7 @@ impl TraceTextWriter {
         let node = &state.data.nodes()[node_idx];
         match &node.ordering[item_idx] {
             TraceMemberOrder::Log(index) => {
-                self.write_log(state, node_idx, *index)?;
+                self.write_log(state, node_idx, *index, item_idx)?;
                 Ok(item_idx + 1)
             }
             TraceMemberOrder::Call(index) => {
@@ -221,7 +341,7 @@ impl TraceTextWriter {
         // Trace header
         self.write_trace_header_spans(&mut spans, &node.trace)?;
         let mut line = Line::from(spans);
-        if idx == state.curr_idx {
+        if idx == state.curr_idx && state.order_idx.is_none() {
             line = line.on_gray();
         }
         self.lines.push(line);
@@ -347,6 +467,7 @@ impl TraceTextWriter {
         state: &TracesState,
         node_idx: usize,
         log_idx: usize,
+        order_idx: usize,
     ) -> eyre::Result<()> {
         let node = &state.data.nodes()[node_idx];
         let log = &node.logs[log_idx];
@@ -390,7 +511,16 @@ impl TraceTextWriter {
             ));
         }
 
-        self.lines.push(Line::from(spans));
+        let line = Line::from(spans);
+        let line = if let Some(curr_order_idx) = state.order_idx
+            && state.curr_idx == node_idx
+            && order_idx == curr_order_idx
+        {
+            line.on_gray()
+        } else {
+            line
+        };
+        self.lines.push(line);
         Ok(())
     }
 

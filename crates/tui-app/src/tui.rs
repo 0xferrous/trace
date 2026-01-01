@@ -57,8 +57,14 @@ impl Tui {
             self.last_render = now;
         }
 
-        let fps = Text::from(format!("fps: {}", self.last_frames))
-            .alignment(ratatui::layout::HorizontalAlignment::Right);
+        let fps = Text::from(format!(
+            "addr: {}, curr_idx: {}, order_idx: {:?}, fps: {}",
+            self.trace_state.curr_address(),
+            self.trace_state.curr_idx(),
+            self.trace_state.order_idx(),
+            self.last_frames
+        ))
+        .alignment(ratatui::layout::HorizontalAlignment::Right);
         let frame_rect = frame.area();
         let last_line = Rect {
             x: 0,
@@ -89,19 +95,27 @@ impl Tui {
             KeyCode::Char(' ') => {
                 self.trace_state.toggle_collapse();
             }
+            KeyCode::Char('J') => {
+                self.scroll_offset.0 += 1;
+            }
+            KeyCode::Char('K') => {
+                self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1);
+            }
             KeyCode::Up => {
                 // if self.viewport_offset == 0 {
-                self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1)
+                // self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1)
                 // } else {
                 //     self.viewport_offset -= 1;
                 // }
+                self.trace_state.up();
             }
             KeyCode::Down => {
                 // if self.viewport_offset == (height - 1) {
-                self.scroll_offset.0 += 1
+                // self.scroll_offset.0 += 1
                 // } else {
                 //     self.viewport_offset += 1;
                 // }
+                self.trace_state.down();
             }
             KeyCode::Left => self.scroll_offset.1 = self.scroll_offset.1.saturating_sub(1),
             KeyCode::Right => self.scroll_offset.1 += 1,
