@@ -30,6 +30,9 @@ jobs:
       - name: Build
         run: nix develop --command trunk build --config ./crates/web/trunk.toml --release --public-url /traces-tui/ index.html
 
+      - name: Copy index.html to 404.html
+        run: cp ./crates/web/dist/index.html ./crates/web/dist/404.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
