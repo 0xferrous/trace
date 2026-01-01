@@ -1,6 +1,16 @@
 use std::io;
 
-use ratatui::{Frame, widgets::Paragraph};
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::{Duration, Instant};
+#[cfg(target_arch = "wasm32")]
+use web_time::{Duration, Instant};
+
+use ratatui::{
+    Frame,
+    layout::{Margin, Rect},
+    text::Text,
+    widgets::Paragraph,
+};
 use revm_inspectors::tracing::CallTraceArena;
 
 use crate::traces::TracesState;
@@ -9,7 +19,12 @@ pub struct Tui {
     trace_state: TracesState,
     scroll_offset: (u16, u16),
     exit: bool,
+    frames: u64,
+    last_frames: u64,
+    last_render: Instant,
 }
+
+const ONE_SEC: Duration = Duration::from_secs(1);
 
 impl Tui {
     pub fn new(trace_data: CallTraceArena) -> Self {
@@ -17,14 +32,42 @@ impl Tui {
             exit: false,
             scroll_offset: (0, 0),
             trace_state: TracesState::new(trace_data),
+            frames: 0,
+            last_frames: 0,
+            last_render: Instant::now(),
         }
     }
 
-    pub fn draw(&self, frame: &mut Frame) -> TuiResult<()> {
+    pub fn draw(&mut self, frame: &mut Frame) -> TuiResult<()> {
         let result: TuiResult<_> = self.trace_state.to_text().map_err(|err| err.into());
         let text_widget = result?;
         let para = Paragraph::new(text_widget).scroll((self.scroll_offset.0, self.scroll_offset.1));
-        frame.render_widget(para, frame.area());
+        frame.render_widget(
+            para,
+            frame.area().inner(Margin {
+                horizontal: 0,
+                vertical: 1,
+            }),
+        );
+
+        let now = Instant::now();
+        if now.duration_since(self.last_render) > ONE_SEC {
+            self.last_frames = self.frames;
+            self.frames = 0;
+            self.last_render = now;
+        }
+
+        let fps = Text::from(format!("fps: {}", self.last_frames))
+            .alignment(ratatui::layout::HorizontalAlignment::Right);
+        let frame_rect = frame.area();
+        let last_line = Rect {
+            x: 0,
+            y: frame_rect.height - 1,
+            height: 1,
+            width: frame_rect.width,
+        };
+        frame.render_widget(fps, last_line);
+        self.frames += 1;
         Ok(())
     }
 

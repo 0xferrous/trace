@@ -10,6 +10,7 @@ use revm_inspectors::tracing::{
     },
 };
 
+const EMPTY: &str = "    ";
 const PIPE: &str = "  │ ";
 const EDGE: &str = "  └─ ";
 const BRANCH: &str = "  ├─ ";
@@ -148,7 +149,10 @@ impl TraceTextWriter {
 
     fn make_indentation(&self) -> String {
         let mut buf = String::from("");
-        for _ in 0..self.indentation_level {
+        if self.indentation_level > 0 {
+            buf.push_str(EMPTY);
+        }
+        for _ in 1..self.indentation_level {
             buf.push_str(PIPE);
         }
         buf

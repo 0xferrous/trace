@@ -14,7 +14,9 @@ clap = { version = "4.5.53", features = ["derive"] }
 color-eyre = "0.6.5"
 crossterm = "0.29.0"
 eyre = "0.6.12"
-ratatui = { version = "0.30.0", default-features = false, features = ["layout-cache"] }
+ratatui = { version = "0.30.0", default-features = false, features = [
+  "layout-cache",
+] }
 revm-inspectors = { version = "0.33.2" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.147"
