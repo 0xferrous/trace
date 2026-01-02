@@ -1,8 +1,11 @@
 use clap::Parser;
-use ratatui::crossterm::event::{self, Event};
+use ratatui::crossterm::{
+    event::{self, Event, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind},
+    execute,
+};
 use revm_inspectors::tracing::{CallTraceArena, TraceWriter};
-use std::{io, path::PathBuf};
-use tui_app::Tui;
+use std::{io, path::PathBuf, time::Duration};
+use tui_app::{Tui, tui::KeyCode};
 
 #[derive(clap::Parser, Debug)]
 struct Args {
@@ -54,16 +57,49 @@ fn main() -> eyre::Result<()> {
         }
         Command::Tui(args) => {
             let data = args.data()?;
-            let mut terminal = ratatui::init();
             let mut tui = Tui::new(data);
-            while !tui.exit() {
-                terminal.try_draw(|f| tui.draw(f))?;
-                let event = event::read()?;
-                if let Event::Key(key) = event {
-                    key.try_into().map(|key| tui.on_key(key)).ok();
+            let mut terminal = ratatui::init();
+            let mut tui_loop = || -> eyre::Result<()> {
+                while !tui.exit() {
+                    terminal.try_draw(|f| tui.draw(f))?;
+                    while let Ok(true) = event::poll(Duration::from_millis(1)) {
+                        if let Ok(event) = event::read() {
+                            match event {
+                                Event::Key(key) => {
+                                    if let Ok(key) = key.try_into() {
+                                        tui.on_key(key);
+                                    }
+                                }
+                                Event::Mouse(MouseEvent {
+                                    kind:
+                                        kind @ (MouseEventKind::ScrollDown | MouseEventKind::ScrollUp),
+                                    // modifiers: KeyModifiers::SHIFT,
+                                    ..
+                                }) => match kind {
+                                    MouseEventKind::ScrollDown => {
+                                        tui.on_key(KeyCode::Char('J'));
+                                    }
+                                    MouseEventKind::ScrollUp => {
+                                        tui.on_key(KeyCode::Char('K'));
+                                    }
+                                    _ => {}
+                                },
+                                _ => {}
+                            }
+                        }
+                    }
                 }
-            }
+                Ok(())
+            };
+
+            let mut stdout = std::io::stdout();
+            execute!(stdout, event::EnableMouseCapture).ok();
+            let ret = tui_loop();
+            // do cleanup
+            execute!(stdout, event::DisableMouseCapture).ok();
             ratatui::restore();
+
+            ret?
         }
     }
 

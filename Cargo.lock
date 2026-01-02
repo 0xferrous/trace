@@ -3589,12 +3589,15 @@ dependencies = [
  "eyre",
  "getrandom 0.2.16",
  "getrandom 0.3.4",
+ "js-sys",
  "ratzilla",
  "revm-inspectors",
  "serde",
  "serde_json",
  "tui-app",
+ "wasm-bindgen",
  "web-sys",
+ "web-time",
 ]
 
 [[package]]

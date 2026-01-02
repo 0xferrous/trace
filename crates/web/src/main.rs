@@ -5,31 +5,25 @@ use web_sys::{console, wasm_bindgen::JsValue};
 use ratzilla::{DomBackend, WebRenderer};
 use tui_app::{Tui, tui::KeyCode};
 
-const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
+mod utils;
+
+use crate::utils::BufferedKeyEvents;
+
+const EXAMPLE_TRACE: &str = include_str!("../../../test_4v.json");
 
 fn main() -> io::Result<()> {
     let backend = DomBackend::new()?;
     let terminal = Terminal::new(backend)?;
 
     let data = serde_json::from_str(EXAMPLE_TRACE)?;
-    let (sender, receiver) = std::sync::mpsc::channel::<KeyCode>();
+    let (sender, receiver) = std::sync::mpsc::channel::<Vec<KeyCode>>();
     let mut tui = Tui::new(data);
+    let debounced = BufferedKeyEvents::new(sender);
 
     terminal.on_key_event({
-        let sender_cloned = sender.clone();
         move |key_event| {
             if let Ok(key_code) = key_event.code.try_into() {
-                // console::log_1(&JsValue::from_str(&format!(
-                //     "received key event: {key_code:?}"
-                // )));
-                sender_cloned
-                    .send(key_code)
-                    .inspect_err(|e| {
-                        console::error_1(&JsValue::from_str(&format!(
-                            "Error sending key event: {e:#?}"
-                        )))
-                    })
-                    .ok();
+                debounced.push(key_code);
             }
         }
     });
@@ -40,11 +34,13 @@ fn main() -> io::Result<()> {
                 console::error_1(&JsValue::from_str(&format!("Error drawing TUI: {err:#?}")))
             })
             .ok();
-        if let Ok(key_code) = receiver.try_recv() {
+        if let Ok(key_codes) = receiver.try_recv() {
             // console::log_1(&JsValue::from_str(&format!(
             //     "received key event: {key_code:?}"
             // )));
-            tui.on_key(key_code);
+            for key_code in key_codes {
+                tui.on_key(key_code);
+            }
         }
     });
 
