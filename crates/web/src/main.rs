@@ -9,7 +9,7 @@ mod utils;
 
 use crate::utils::BufferedKeyEvents;
 
-const EXAMPLE_TRACE: &str = include_str!("../../../test_4v.json");
+const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
 
 fn main() -> io::Result<()> {
     let backend = DomBackend::new()?;
