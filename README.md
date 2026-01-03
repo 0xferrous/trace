@@ -1,6 +1,6 @@
 # traces-tui
 
-This project addresses the long need of lack of interactive traces explorer in [foundry](https://github.com/foundry-rs/foundry).
+This project addresses the long-standing lack of of interactive traces explorer in [foundry](https://github.com/foundry-rs/foundry).
 
 ## Why?
 
