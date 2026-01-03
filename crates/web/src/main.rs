@@ -1,4 +1,7 @@
-use ratzilla::ratatui::Terminal;
+use ratzilla::{
+    event::{MouseEventKind, ScrollDelta},
+    ratatui::Terminal,
+};
 use std::io;
 use web_sys::{console, wasm_bindgen::JsValue};
 
@@ -21,9 +24,27 @@ fn main() -> io::Result<()> {
     let debounced = BufferedKeyEvents::new(sender);
 
     terminal.on_key_event({
+        let clone = debounced.clone();
         move |key_event| {
             if let Ok(key_code) = key_event.code.try_into() {
-                debounced.push(key_code);
+                clone.push(key_code);
+            }
+        }
+    });
+
+    terminal.on_wheel_event({
+        let clone = debounced.clone();
+        move |mouse_event| {
+            if let MouseEventKind::ScrolledVertical(scroll) = mouse_event.event {
+                let keycode = match scroll {
+                    ScrollDelta::Pages(0..)
+                    | ScrollDelta::Lines(0..)
+                    | ScrollDelta::Pixels(0..) => KeyCode::Char('J'),
+                    ScrollDelta::Pages(..=-1)
+                    | ScrollDelta::Lines(..=-1)
+                    | ScrollDelta::Pixels(..=-1) => KeyCode::Char('K'),
+                };
+                clone.push(keycode);
             }
         }
     });
