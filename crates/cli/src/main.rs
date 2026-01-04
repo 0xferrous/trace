@@ -9,7 +9,12 @@ use ratatui::{
     prelude::IntoCrossterm,
 };
 use revm_inspectors::tracing::{CallTraceArena, TraceWriter};
-use std::{io, path::PathBuf, time::Duration};
+use simplelog::WriteLogger;
+use std::{
+    io::{self, Write},
+    path::PathBuf,
+    time::Duration,
+};
 use tui_app::{TracesState, Tui, tui::KeyCode};
 
 #[derive(clap::Parser, Debug)]
@@ -70,7 +75,7 @@ fn main() -> eyre::Result<()> {
                 println!("{to_string}");
             } else {
                 let trace_state = TracesState::new(data);
-                let text = trace_state.to_text()?;
+                let text = trace_state.to_text(false)?;
                 let mut stdout = std::io::stdout();
 
                 for line in text.lines {
@@ -81,21 +86,32 @@ fn main() -> eyre::Result<()> {
                     }
                     stdout.queue(Print("\n"))?;
                 }
+                stdout.flush()?;
             }
         }
         Command::Tui(args) => {
+            WriteLogger::init(
+                log::LevelFilter::Trace,
+                Default::default(),
+                std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open("/tmp/traces-cli.log")?,
+            )?;
+
             let data = args.data()?;
             let mut tui = Tui::new(data);
             let mut terminal = ratatui::init();
             let mut tui_loop = || -> eyre::Result<()> {
                 while !tui.exit() {
                     terminal.try_draw(|f| tui.draw(f))?;
+                    let frame = terminal.get_frame();
                     while let Ok(true) = event::poll(Duration::from_millis(1)) {
                         if let Ok(event) = event::read() {
                             match event {
                                 Event::Key(key) => {
                                     if let Ok(key) = key.try_into() {
-                                        tui.on_key(key);
+                                        tui.on_key(key, &frame);
                                     }
                                 }
                                 Event::Mouse(MouseEvent {
@@ -105,10 +121,10 @@ fn main() -> eyre::Result<()> {
                                     ..
                                 }) => match kind {
                                     MouseEventKind::ScrollDown => {
-                                        tui.on_key(KeyCode::Char('J'));
+                                        tui.on_key(KeyCode::Char('J'), &frame);
                                     }
                                     MouseEventKind::ScrollUp => {
-                                        tui.on_key(KeyCode::Char('K'));
+                                        tui.on_key(KeyCode::Char('K'), &frame);
                                     }
                                     _ => {}
                                 },

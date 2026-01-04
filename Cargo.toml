@@ -25,7 +25,8 @@ ratzilla = "0.2.0"
 # Workspace member crates
 tui-app = { path = "crates/tui-app" }
 web-time = { version = "1.1.0" }
-
+log = "0.4.29"
+simplelog = "0.12.2"
 # [patch.'https://github.com/foundry-rs/foundry']
 # foundry-evm-traces = { path = "../foundry/crates/evm/traces" }
 #

@@ -13,7 +13,12 @@ getrandom = { version = "0.2.16", features = ["js"] }
 ratzilla = { workspace = true, optional = true }
 crossterm = { workspace = true, optional = true }
 web-time = { workspace = true, optional = true }
+log.workspace = true
 
 [features]
 crossterm = ["dep:crossterm", "ratatui/crossterm"]
 ratzilla = ["dep:ratzilla", "dep:web-time"]
+
+[dev-dependencies]
+serde_json.workspace = true
+simplelog.workspace = true

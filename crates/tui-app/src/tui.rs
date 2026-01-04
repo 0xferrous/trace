@@ -39,7 +39,7 @@ impl Tui {
     }
 
     pub fn draw(&mut self, frame: &mut Frame) -> TuiResult<()> {
-        let result: TuiResult<_> = self.trace_state.to_text().map_err(|err| err.into());
+        let result: TuiResult<_> = self.trace_state.to_text(true).map_err(|err| err.into());
         let text_widget = result?;
         let para = Paragraph::new(text_widget).scroll((self.scroll_offset.0, self.scroll_offset.1));
         frame.render_widget(
@@ -77,7 +77,8 @@ impl Tui {
         Ok(())
     }
 
-    pub fn on_key(&mut self, key: KeyCode) {
+    pub fn on_key(&mut self, key: KeyCode, frame: &Frame) {
+        let area = frame.area();
         match key {
             KeyCode::Char('q') => self.exit = true,
             KeyCode::Char('j') => {
@@ -100,6 +101,14 @@ impl Tui {
             }
             KeyCode::Char('K') => {
                 self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1);
+            }
+            KeyCode::Char('g') => {
+                self.trace_state.first();
+            }
+            KeyCode::Char('G') => {
+                self.trace_state.last();
+                let n_lines = self.trace_state.to_text(true).unwrap().lines.len();
+                self.scroll_offset.0 = n_lines as u16 - area.height + 2;
             }
             KeyCode::Up => {
                 // if self.viewport_offset == 0 {

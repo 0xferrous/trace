@@ -12,3 +12,5 @@ revm-inspectors.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tui-app = { workspace = true, features = ["crossterm"] }
+simplelog.workspace = true
+log.workspace = true
