@@ -2518,8 +2518,7 @@ dependencies = [
 [[package]]
 name = "ratatui"
 version = "0.30.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1ce67fb8ba4446454d1c8dbaeda0557ff5e94d39d5e5ed7f10a65eb4c8266bc"
+source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
 dependencies = [
  "instability",
  "ratatui-core",
@@ -2530,8 +2529,7 @@ dependencies = [
 [[package]]
 name = "ratatui-core"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ef8dea09a92caaf73bff7adb70b76162e5937524058a7e5bff37869cbbec293"
+source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
 dependencies = [
  "bitflags",
  "compact_str",
@@ -2550,8 +2548,7 @@ dependencies = [
 [[package]]
 name = "ratatui-crossterm"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "577c9b9f652b4c121fb25c6a391dd06406d3b092ba68827e6d2f09550edc54b3"
+source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
 dependencies = [
  "cfg-if",
  "crossterm",
@@ -2562,8 +2559,7 @@ dependencies = [
 [[package]]
 name = "ratatui-widgets"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7dbfa023cd4e604c2553483820c5fe8aa9d71a42eea5aa77c6e7f35756612db"
+source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
 dependencies = [
  "bitflags",
  "hashbrown 0.16.1",
@@ -3578,6 +3574,7 @@ dependencies = [
  "ratatui",
  "ratzilla",
  "revm-inspectors",
+ "serde_json",
  "thiserror",
  "web-time",
 ]

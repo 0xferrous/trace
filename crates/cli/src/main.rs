@@ -1,11 +1,16 @@
 use clap::Parser;
-use ratatui::crossterm::{
-    event::{self, Event, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind},
-    execute,
+use ratatui::{
+    crossterm::{
+        QueueableCommand,
+        event::{self, Event, MouseEvent, MouseEventKind},
+        execute,
+        style::{Print, ResetColor, SetStyle},
+    },
+    prelude::IntoCrossterm,
 };
 use revm_inspectors::tracing::{CallTraceArena, TraceWriter};
 use std::{io, path::PathBuf, time::Duration};
-use tui_app::{Tui, tui::KeyCode};
+use tui_app::{TracesState, Tui, tui::KeyCode};
 
 #[derive(clap::Parser, Debug)]
 struct Args {
@@ -15,13 +20,21 @@ struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 enum Command {
-    Debug(CommonArgs),
+    Debug(DebugArgs),
     Tui(CommonArgs),
 }
 
 #[derive(clap::Parser, Debug)]
 struct CommonArgs {
     path: Option<PathBuf>,
+}
+
+#[derive(clap::Parser, Debug)]
+struct DebugArgs {
+    #[clap(flatten)]
+    common: CommonArgs,
+    #[clap(long, short, default_value_t = false)]
+    revm: bool,
 }
 
 impl CommonArgs {
@@ -45,15 +58,30 @@ fn main() -> eyre::Result<()> {
 
     match args.command {
         Command::Debug(args) => {
-            let data = args.data()?;
-            let mut trace_writer = TraceWriter::new(Vec::new())
-                .color_cheatcodes(true)
-                .use_colors(revm_inspectors::ColorChoice::Always)
-                .write_bytecodes(true)
-                .with_storage_changes(true);
-            trace_writer.write_arena(&data)?;
-            let to_string = String::from_utf8(trace_writer.into_writer())?;
-            println!("{to_string}");
+            let data = args.common.data()?;
+            if args.revm {
+                let mut trace_writer = TraceWriter::new(Vec::new())
+                    .color_cheatcodes(true)
+                    .use_colors(revm_inspectors::ColorChoice::Always)
+                    .write_bytecodes(true)
+                    .with_storage_changes(true);
+                trace_writer.write_arena(&data)?;
+                let to_string = String::from_utf8(trace_writer.into_writer())?;
+                println!("{to_string}");
+            } else {
+                let trace_state = TracesState::new(data);
+                let text = trace_state.to_text(false)?;
+                let mut stdout = std::io::stdout();
+
+                for line in text.lines {
+                    for span in line.spans {
+                        stdout.queue(SetStyle(span.style.into_crossterm()))?;
+                        stdout.queue(Print(span.content))?;
+                        stdout.queue(ResetColor)?;
+                    }
+                    stdout.queue(Print("\n"))?;
+                }
+            }
         }
         Command::Tui(args) => {
             let data = args.data()?;
