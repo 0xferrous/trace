@@ -70,7 +70,7 @@ fn main() -> eyre::Result<()> {
                 println!("{to_string}");
             } else {
                 let trace_state = TracesState::new(data);
-                let text = trace_state.to_text(false)?;
+                let text = trace_state.to_text()?;
                 let mut stdout = std::io::stdout();
 
                 for line in text.lines {

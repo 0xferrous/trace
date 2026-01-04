@@ -3574,7 +3574,6 @@ dependencies = [
  "ratatui",
  "ratzilla",
  "revm-inspectors",
- "serde_json",
  "thiserror",
  "web-time",
 ]
