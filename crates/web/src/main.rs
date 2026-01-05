@@ -1,4 +1,6 @@
 use ratzilla::{
+    SelectionMode, WebGl2Backend,
+    backend::webgl2::{FontAtlasData, WebGl2BackendOptions},
     event::{MouseEventKind, ScrollDelta},
     ratatui::Terminal,
 };
@@ -10,12 +12,21 @@ use tui_app::{Tui, tui::KeyCode};
 
 mod utils;
 
-use crate::utils::BufferedKeyEvents;
+use crate::utils::{BufferedKeyEvents, log_err};
 
 const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
 
 fn main() -> io::Result<()> {
-    let backend = DomBackend::new()?;
+    let backend = WebGl2Backend::new_with_options(
+        WebGl2BackendOptions::new()
+            .enable_mouse_selection_with_mode(SelectionMode::Linear)
+            .font_atlas(
+                FontAtlasData::from_binary(include_bytes!("../RecMonoCasual.atlas"))
+                    .inspect_err(|err| log_err("error loadng font atlas", Some(err)))
+                    .expect("Failed to load font atlas"),
+            ),
+    )?;
+    // let backend = DomBackend::new()?;
     let terminal = Terminal::new(backend)?;
 
     let data = serde_json::from_str(EXAMPLE_TRACE)?;

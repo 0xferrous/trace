@@ -2577,7 +2577,7 @@ dependencies = [
 [[package]]
 name = "ratzilla"
 version = "0.2.0"
-source = "git+https://github.com/0xferrous/ratzilla?rev=6f9c85729d8c2c75c89aa4ce78f5c63d6a86ba6f#6f9c85729d8c2c75c89aa4ce78f5c63d6a86ba6f"
+source = "git+https://github.com/0xferrous/ratzilla?rev=ab59578e57d5c132d6061fcd5dd4f4ac6c33c03d#ab59578e57d5c132d6061fcd5dd4f4ac6c33c03d"
 dependencies = [
  "beamterm-renderer",
  "bitvec",
