@@ -2518,7 +2518,7 @@ dependencies = [
 [[package]]
 name = "ratatui"
 version = "0.30.0"
-source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
+source = "git+https://github.com/ratatui/ratatui#53d925a8abac3690680633c4ad3eefe3c1b3258c"
 dependencies = [
  "instability",
  "ratatui-core",
@@ -2529,7 +2529,7 @@ dependencies = [
 [[package]]
 name = "ratatui-core"
 version = "0.1.0"
-source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
+source = "git+https://github.com/ratatui/ratatui#53d925a8abac3690680633c4ad3eefe3c1b3258c"
 dependencies = [
  "bitflags",
  "compact_str",
@@ -2548,7 +2548,7 @@ dependencies = [
 [[package]]
 name = "ratatui-crossterm"
 version = "0.1.0"
-source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
+source = "git+https://github.com/ratatui/ratatui#53d925a8abac3690680633c4ad3eefe3c1b3258c"
 dependencies = [
  "cfg-if",
  "crossterm",
@@ -2559,7 +2559,7 @@ dependencies = [
 [[package]]
 name = "ratatui-widgets"
 version = "0.3.0"
-source = "git+https://github.com/0xferrous/ratatui?rev=fdea0bb0cb55cde4b94c706227bac692f0375865#fdea0bb0cb55cde4b94c706227bac692f0375865"
+source = "git+https://github.com/ratatui/ratatui#53d925a8abac3690680633c4ad3eefe3c1b3258c"
 dependencies = [
  "bitflags",
  "hashbrown 0.16.1",
