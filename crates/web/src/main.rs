@@ -60,7 +60,7 @@ fn main() -> io::Result<()> {
             //     "received key event: {key_code:?}"
             // )));
             for key_code in key_codes {
-                tui.on_key(key_code);
+                tui.on_key(key_code, f);
             }
         }
     });
