@@ -61,7 +61,7 @@ impl Tui {
             "addr: {}, curr_idx: {}, order_idx: {:?}, fps: {}",
             self.trace_state.curr_address(),
             self.trace_state.curr_idx(),
-            self.trace_state.order_idx(),
+            self.trace_state.active_item(),
             self.last_frames
         ))
         .alignment(ratatui::layout::HorizontalAlignment::Right);
@@ -104,6 +104,7 @@ impl Tui {
             }
             KeyCode::Char('g') => {
                 self.trace_state.first();
+                self.scroll_offset.0 = 0;
             }
             KeyCode::Char('G') => {
                 self.trace_state.last();
