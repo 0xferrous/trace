@@ -90,8 +90,14 @@ fn main() -> eyre::Result<()> {
             }
         }
         Command::Tui(args) => {
+            // Parse log level from RUST_LOG env var, defaulting to Info
+            let log_level = std::env::var("RUST_LOG")
+                .ok()
+                .and_then(|s| s.parse::<log::LevelFilter>().ok())
+                .unwrap_or(log::LevelFilter::Info);
+
             WriteLogger::init(
-                log::LevelFilter::Trace,
+                log_level,
                 Default::default(),
                 std::fs::OpenOptions::new()
                     .create(true)
