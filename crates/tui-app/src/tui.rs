@@ -15,6 +15,24 @@ use revm_inspectors::tracing::CallTraceArena;
 
 use crate::traces::TracesState;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Action {
+    Quit,
+    StepOver,
+    ReverseStepOver,
+    StepOut,
+    StepInto,
+    ToggleCollapse,
+    ScrollDown,
+    ScrollUp,
+    GoToTop,
+    GoToBottom,
+    Up,
+    Down,
+    ScrollLeft,
+    ScrollRight,
+}
+
 pub struct Tui {
     trace_state: TracesState,
     scroll_offset: (u16, u16),
@@ -78,58 +96,77 @@ impl Tui {
     }
 
     pub fn on_key(&mut self, key: KeyCode, frame: &Frame) {
-        let area = frame.area();
+        if let Some(action) = Self::key_to_action(key) {
+            self.dispatch(action, frame);
+        }
+    }
+
+    fn key_to_action(key: KeyCode) -> Option<Action> {
         match key {
-            KeyCode::Char('q') => self.exit = true,
-            KeyCode::Char('j') => {
+            KeyCode::Char('q') => Some(Action::Quit),
+            KeyCode::Char('j') => Some(Action::StepOver),
+            KeyCode::Char('k') => Some(Action::ReverseStepOver),
+            KeyCode::Char('h') => Some(Action::StepOut),
+            KeyCode::Char('l') => Some(Action::StepInto),
+            KeyCode::Char(' ') => Some(Action::ToggleCollapse),
+            KeyCode::Char('J') => Some(Action::ScrollDown),
+            KeyCode::Char('K') => Some(Action::ScrollUp),
+            KeyCode::Char('g') => Some(Action::GoToTop),
+            KeyCode::Char('G') => Some(Action::GoToBottom),
+            KeyCode::Up => Some(Action::Up),
+            KeyCode::Down => Some(Action::Down),
+            KeyCode::Left => Some(Action::ScrollLeft),
+            KeyCode::Right => Some(Action::ScrollRight),
+            _ => None,
+        }
+    }
+
+    pub fn dispatch(&mut self, action: Action, frame: &Frame) {
+        let area = frame.area();
+        match action {
+            Action::Quit => self.exit = true,
+            Action::StepOver => {
                 self.trace_state.step_over();
             }
-            KeyCode::Char('k') => {
+            Action::ReverseStepOver => {
                 self.trace_state.reverse_step_over();
             }
-            KeyCode::Char('h') => {
+            Action::StepOut => {
                 self.trace_state.step_out();
             }
-            KeyCode::Char('l') => {
+            Action::StepInto => {
                 self.trace_state.step_into();
             }
-            KeyCode::Char(' ') => {
+            Action::ToggleCollapse => {
                 self.trace_state.toggle_collapse();
             }
-            KeyCode::Char('J') => {
+            Action::ScrollDown => {
                 self.scroll_offset.0 += 1;
             }
-            KeyCode::Char('K') => {
+            Action::ScrollUp => {
                 self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1);
             }
-            KeyCode::Char('g') => {
+            Action::GoToTop => {
                 self.trace_state.first();
                 self.scroll_offset.0 = 0;
             }
-            KeyCode::Char('G') => {
+            Action::GoToBottom => {
                 self.trace_state.last();
                 let n_lines = self.trace_state.to_text(true).unwrap().lines.len();
                 self.scroll_offset.0 = n_lines as u16 - area.height + 2;
             }
-            KeyCode::Up => {
-                // if self.viewport_offset == 0 {
-                // self.scroll_offset.0 = self.scroll_offset.0.saturating_sub(1)
-                // } else {
-                //     self.viewport_offset -= 1;
-                // }
+            Action::Up => {
                 self.trace_state.up();
             }
-            KeyCode::Down => {
-                // if self.viewport_offset == (height - 1) {
-                // self.scroll_offset.0 += 1
-                // } else {
-                //     self.viewport_offset += 1;
-                // }
+            Action::Down => {
                 self.trace_state.down();
             }
-            KeyCode::Left => self.scroll_offset.1 = self.scroll_offset.1.saturating_sub(1),
-            KeyCode::Right => self.scroll_offset.1 += 1,
-            _ => {}
+            Action::ScrollLeft => {
+                self.scroll_offset.1 = self.scroll_offset.1.saturating_sub(1);
+            }
+            Action::ScrollRight => {
+                self.scroll_offset.1 += 1;
+            }
         }
     }
 
