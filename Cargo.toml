@@ -35,6 +35,6 @@ simplelog = "0.12.2"
 #
 [patch.crates-io]
 # revm-inspectors = { path = "../open-source/revm-inspectors" }
-ratzilla = { git = "https://github.com/0xferrous/ratzilla", rev = "ab59578e57d5c132d6061fcd5dd4f4ac6c33c03d" }
+ratzilla = { git = "https://github.com/0xferrous/ratzilla", rev = "ed1fbf6b3ae83377ef9e3af8133aaa7f6fa6f704" }
 ratatui = { git = "https://github.com/ratatui/ratatui" }
 # ratzilla = { path = "../open-source/ratzilla/" }

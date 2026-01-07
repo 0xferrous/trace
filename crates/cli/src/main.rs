@@ -2,7 +2,7 @@ use clap::Parser;
 use ratatui::{
     crossterm::{
         QueueableCommand,
-        event::{self, Event, MouseEvent, MouseEventKind},
+        event::{self, Event, KeyCode, MouseEvent, MouseEventKind},
         execute,
         style::{Print, ResetColor, SetStyle},
     },
@@ -15,7 +15,7 @@ use std::{
     path::PathBuf,
     time::Duration,
 };
-use tui_app::{TracesState, Tui, tui::KeyCode};
+use tui_app::{TracesState, Tui};
 
 #[derive(clap::Parser, Debug)]
 struct Args {
@@ -116,9 +116,7 @@ fn main() -> eyre::Result<()> {
                         if let Ok(event) = event::read() {
                             match event {
                                 Event::Key(key) => {
-                                    if let Ok(key) = key.try_into() {
-                                        tui.on_key(key, &frame);
-                                    }
+                                    tui.on_key(key.code, &frame);
                                 }
                                 Event::Mouse(MouseEvent {
                                     kind:

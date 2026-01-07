@@ -4,7 +4,7 @@ use std::{
     sync::{RwLock, mpsc::Sender},
 };
 
-use tui_app::tui::KeyCode;
+use ratzilla::event::KeyCode;
 use wasm_bindgen::{JsCast, JsValue, prelude::Closure};
 use web_sys::console;
 use web_time::Duration;

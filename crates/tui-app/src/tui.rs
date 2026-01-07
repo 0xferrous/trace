@@ -7,31 +7,13 @@ use web_time::{Duration, Instant};
 
 use ratatui::{
     Frame,
-    layout::{Margin, Rect},
+    layout::{HorizontalAlignment, Margin, Rect},
     text::Text,
-    widgets::Paragraph,
+    widgets::{Block, Clear, Paragraph, Widget},
 };
 use revm_inspectors::tracing::CallTraceArena;
 
-use crate::traces::TracesState;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Action {
-    Quit,
-    StepOver,
-    ReverseStepOver,
-    StepOut,
-    StepInto,
-    ToggleCollapse,
-    ScrollDown,
-    ScrollUp,
-    GoToTop,
-    GoToBottom,
-    Up,
-    Down,
-    ScrollLeft,
-    ScrollRight,
-}
+use crate::{bindings::Action, traces::TracesState};
 
 pub struct Tui {
     trace_state: TracesState,
@@ -40,6 +22,7 @@ pub struct Tui {
     frames: u64,
     last_frames: u64,
     last_render: Instant,
+    help: bool,
 }
 
 const ONE_SEC: Duration = Duration::from_secs(1);
@@ -53,10 +36,12 @@ impl Tui {
             frames: 0,
             last_frames: 0,
             last_render: Instant::now(),
+            help: false,
         }
     }
 
     pub fn draw(&mut self, frame: &mut Frame) -> TuiResult<()> {
+        // render the trace
         let result: TuiResult<_> = self.trace_state.to_text(true).map_err(|err| err.into());
         let text_widget = result?;
         let para = Paragraph::new(text_widget).scroll((self.scroll_offset.0, self.scroll_offset.1));
@@ -68,6 +53,7 @@ impl Tui {
             }),
         );
 
+        // render the status line
         let now = Instant::now();
         if now.duration_since(self.last_render) > ONE_SEC {
             self.last_frames = self.frames;
@@ -92,36 +78,37 @@ impl Tui {
         };
         frame.render_widget(fps, last_line);
         self.frames += 1;
+
+        // render the help modal if open
+        if self.help {
+            let text = Action::to_text();
+            let text_rect = text_to_encapsulating_rect(&text);
+            let text_rect_centered = centered_rectangle(frame.area(), text_rect);
+            let text_rect_margined = text_rect_centered.outer(Margin::new(1, 1));
+
+            let block_rect = text_rect_margined.outer(Margin::new(1, 1));
+
+            let block = Block::bordered()
+                .title(" Help ")
+                .title_alignment(HorizontalAlignment::Center);
+            frame.render_widget(Clear, block_rect);
+            frame.render_widget(block, block_rect);
+            frame.render_widget(text, text_rect_centered);
+        }
+
         Ok(())
     }
 
-    pub fn on_key(&mut self, key: KeyCode, frame: &Frame) {
-        if let Some(action) = Self::key_to_action(key) {
+    pub fn on_key(&mut self, key: crate::bindings::KeyCode, frame: &Frame) {
+        if let Ok(action) = key.try_into() {
             self.dispatch(action, frame);
         }
     }
 
-    fn key_to_action(key: KeyCode) -> Option<Action> {
-        match key {
-            KeyCode::Char('q') => Some(Action::Quit),
-            KeyCode::Char('j') => Some(Action::StepOver),
-            KeyCode::Char('k') => Some(Action::ReverseStepOver),
-            KeyCode::Char('h') => Some(Action::StepOut),
-            KeyCode::Char('l') => Some(Action::StepInto),
-            KeyCode::Char(' ') => Some(Action::ToggleCollapse),
-            KeyCode::Char('J') => Some(Action::ScrollDown),
-            KeyCode::Char('K') => Some(Action::ScrollUp),
-            KeyCode::Char('g') => Some(Action::GoToTop),
-            KeyCode::Char('G') => Some(Action::GoToBottom),
-            KeyCode::Up => Some(Action::Up),
-            KeyCode::Down => Some(Action::Down),
-            KeyCode::Left => Some(Action::ScrollLeft),
-            KeyCode::Right => Some(Action::ScrollRight),
-            _ => None,
-        }
-    }
-
     pub fn dispatch(&mut self, action: Action, frame: &Frame) {
+        // any action will close help
+        self.help = false;
+
         let area = frame.area();
         match action {
             Action::Quit => self.exit = true,
@@ -167,6 +154,7 @@ impl Tui {
             Action::ScrollRight => {
                 self.scroll_offset.1 += 1;
             }
+            Action::Help => self.help = true,
         }
     }
 
@@ -183,15 +171,8 @@ pub enum TuiError {
     IoError(#[from] io::Error),
     #[error("Error: {0}")]
     ArbitraryError(#[from] eyre::Error),
-}
-
-#[derive(Debug)]
-pub enum KeyCode {
-    Up,
-    Down,
-    Left,
-    Right,
-    Char(char),
+    #[error("Unknown keybind")]
+    UnknownKeybindError,
 }
 
 impl From<TuiError> for std::io::Error {
@@ -199,38 +180,31 @@ impl From<TuiError> for std::io::Error {
         match err {
             TuiError::IoError(err) => err,
             TuiError::ArbitraryError(report) => io::Error::other(format!("{}", report)),
+            TuiError::UnknownKeybindError => {
+                io::Error::new(io::ErrorKind::Other, "Unknown keybind")
+            }
         }
     }
 }
 
-#[cfg(feature = "crossterm")]
-impl TryFrom<crossterm::event::KeyEvent> for KeyCode {
-    type Error = String;
-
-    fn try_from(value: crossterm::event::KeyEvent) -> Result<Self, Self::Error> {
-        match value.code {
-            crossterm::event::KeyCode::Up => Ok(Self::Up),
-            crossterm::event::KeyCode::Down => Ok(Self::Down),
-            crossterm::event::KeyCode::Left => Ok(Self::Left),
-            crossterm::event::KeyCode::Right => Ok(Self::Right),
-            crossterm::event::KeyCode::Char(c) => Ok(Self::Char(c)),
-            _ => Err(format!("Unsupported key code: {:?}", value.code)),
-        }
+/// Calculate the rectangle size needed to fully render a text widget
+fn text_to_encapsulating_rect(text: &Text<'_>) -> Rect {
+    let height = text.lines.len() as u16;
+    let width = text
+        .lines
+        .iter()
+        .map(|l| l.spans.iter().map(|sp| sp.content.len() as u16).sum())
+        .max()
+        .unwrap_or_default();
+    Rect {
+        height,
+        width,
+        ..Default::default()
     }
 }
 
-#[cfg(feature = "ratzilla")]
-impl TryFrom<ratzilla::event::KeyCode> for KeyCode {
-    type Error = String;
-
-    fn try_from(value: ratzilla::event::KeyCode) -> Result<Self, Self::Error> {
-        match value {
-            ratzilla::event::KeyCode::Up => Ok(Self::Up),
-            ratzilla::event::KeyCode::Down => Ok(Self::Down),
-            ratzilla::event::KeyCode::Left => Ok(Self::Left),
-            ratzilla::event::KeyCode::Right => Ok(Self::Right),
-            ratzilla::event::KeyCode::Char(c) => Ok(Self::Char(c)),
-            _ => Err(format!("Unsupported key code: {:?}", value)),
-        }
-    }
+fn centered_rectangle(container: Rect, content: Rect) -> Rect {
+    let x = (container.width - content.width) / 2;
+    let y = (container.height - content.height) / 2;
+    Rect { x, y, ..content }
 }

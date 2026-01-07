@@ -789,9 +789,9 @@ checksum = "0e050f626429857a27ddccb31e0aca21356bfa709c04041aefddac081a8f068a"
 
 [[package]]
 name = "beamterm-data"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bf74a7c20e83a40e542c032c918f1b5653ad4a137b49b7063e61030983ce243"
+checksum = "08288df33ab747535a13d40ddbbc9d79ded776e89dba2ea535963af88e515ef1"
 dependencies = [
  "compact_str",
  "miniz_oxide",
@@ -799,15 +799,18 @@ dependencies = [
 
 [[package]]
 name = "beamterm-renderer"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c27cc93582c7ce0f7350adcd2e0ffe21237687ba6bfb67cdea15e6e37001d19f"
+checksum = "0547da1dffabea4355cef27308898db51d3b5052ca1204366af41a0fe54172c2"
 dependencies = [
  "beamterm-data",
  "compact_str",
  "console_error_panic_hook",
+ "emojis",
  "js-sys",
+ "lru",
  "thiserror",
+ "unicode-width",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -1456,6 +1459,15 @@ dependencies = [
  "serdect",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "emojis"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50c1c1870b766fc398e5f0526498d09c94b6de15be5fd769a28bbc804fb1b05d"
+dependencies = [
+ "phf",
 ]
 
 [[package]]
@@ -2577,7 +2589,7 @@ dependencies = [
 [[package]]
 name = "ratzilla"
 version = "0.2.0"
-source = "git+https://github.com/0xferrous/ratzilla?rev=ab59578e57d5c132d6061fcd5dd4f4ac6c33c03d#ab59578e57d5c132d6061fcd5dd4f4ac6c33c03d"
+source = "git+https://github.com/0xferrous/ratzilla?rev=ed1fbf6b3ae83377ef9e3af8133aaa7f6fa6f704#ed1fbf6b3ae83377ef9e3af8133aaa7f6fa6f704"
 dependencies = [
  "beamterm-renderer",
  "bitvec",
@@ -2922,6 +2934,12 @@ name = "rustc-hex"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
+
+[[package]]
+name = "rustc-std-workspace-core"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa9c45b374136f52f2d6311062c7146bff20fec063c3f5d46a410bd937746955"
 
 [[package]]
 name = "rustc_version"
@@ -3679,6 +3697,9 @@ name = "unicode-width"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
+dependencies = [
+ "rustc-std-workspace-core",
+]
 
 [[package]]
 name = "unicode-xid"

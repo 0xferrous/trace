@@ -1,14 +1,14 @@
 use ratzilla::{
     SelectionMode, WebGl2Backend,
     backend::webgl2::{FontAtlasData, WebGl2BackendOptions},
-    event::{MouseEventKind, ScrollDelta},
+    event::{KeyCode, MouseEventKind, ScrollDelta},
     ratatui::Terminal,
 };
 use std::io;
 use web_sys::{console, wasm_bindgen::JsValue};
 
 use ratzilla::{DomBackend, WebRenderer};
-use tui_app::{Tui, tui::KeyCode};
+use tui_app::Tui;
 
 mod utils;
 
