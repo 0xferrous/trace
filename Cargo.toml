@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/cli", "crates/tui-app", "crates/web"]
+members = ["crates/cli", "crates/tui-app", "crates/web", "crates/backend"]
 default-members = ["crates/cli", "crates/tui-app"]
 resolver = "2"
 
@@ -10,7 +10,7 @@ edition = "2024"
 [workspace.dependencies]
 alloy-primitives = { version = "1.4", default-features = false }
 ansi-to-tui = "8.0.0"
-clap = { version = "4.5.53", features = ["derive"] }
+clap = { version = "4.5.53", features = ["derive", "env"] }
 color-eyre = "0.6.5"
 crossterm = "0.29.0"
 eyre = "0.6.12"
