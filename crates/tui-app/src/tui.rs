@@ -9,7 +9,7 @@ use ratatui::{
     Frame,
     layout::{HorizontalAlignment, Margin, Rect},
     text::Text,
-    widgets::{Block, Clear, Paragraph, Widget},
+    widgets::{Block, Clear, Paragraph},
 };
 use revm_inspectors::tracing::CallTraceArena;
 

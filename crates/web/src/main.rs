@@ -1,33 +1,27 @@
+use ratzilla::WebRenderer;
 use ratzilla::{
-    SelectionMode, WebGl2Backend,
-    backend::webgl2::{FontAtlasData, WebGl2BackendOptions},
+    FontAtlasConfig, SelectionMode,
+    backend::webgl2::WebGl2BackendOptions,
     event::{KeyCode, MouseEventKind, ScrollDelta},
-    ratatui::Terminal,
 };
 use std::io;
 use web_sys::{console, wasm_bindgen::JsValue};
 
-use ratzilla::{DomBackend, WebRenderer};
 use tui_app::Tui;
 
 mod utils;
 
-use crate::utils::{BufferedKeyEvents, log_err};
+use crate::utils::BufferedKeyEvents;
+use multi_backend::backend::{BackendType, MultiBackendBuilder};
 
 const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
 
 fn main() -> io::Result<()> {
-    let backend = WebGl2Backend::new_with_options(
-        WebGl2BackendOptions::new()
-            .enable_mouse_selection_with_mode(SelectionMode::Linear)
-            .font_atlas(
-                FontAtlasData::from_binary(include_bytes!("../RecMonoCasual.atlas"))
-                    .inspect_err(|err| log_err("error loadng font atlas", Some(err)))
-                    .expect("Failed to load font atlas"),
-            ),
-    )?;
-    // let backend = DomBackend::new()?;
-    let terminal = Terminal::new(backend)?;
+    let terminal = MultiBackendBuilder::with_fallback(BackendType::WebGl2)
+        .webgl2_options(
+            WebGl2BackendOptions::new().enable_mouse_selection_with_mode(SelectionMode::Linear), // .font_atlas_config(FontAtlasConfig::Dynamic(vec!["Fira Code".to_string()], 30.)),
+        )
+        .build_terminal()?;
 
     let data = serde_json::from_str(EXAMPLE_TRACE)?;
     let (sender, receiver) = std::sync::mpsc::channel::<Vec<KeyCode>>();
@@ -37,9 +31,7 @@ fn main() -> io::Result<()> {
     terminal.on_key_event({
         let clone = debounced.clone();
         move |key_event| {
-            if let Ok(key_code) = key_event.code.try_into() {
-                clone.push(key_code);
-            }
+            clone.push(key_event.code);
         }
     });
 

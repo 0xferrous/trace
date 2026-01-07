@@ -16,3 +16,5 @@ web-sys = { version = "0.3.83", features = ["console", "Window"] }
 wasm-bindgen = "0.2.106"
 js-sys = "0.3.83"
 web-time.workspace = true
+
+multi_backend = { package = "examples-shared", git = "https://github.com/0xferrous/ratzilla", rev = "ed1fbf6b3ae83377ef9e3af8133aaa7f6fa6f704", subdir = "examples/shared" }
