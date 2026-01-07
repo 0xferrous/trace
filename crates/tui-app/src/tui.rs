@@ -100,15 +100,15 @@ impl Tui {
     }
 
     pub fn on_key(&mut self, key: crate::bindings::KeyCode, frame: &Frame) {
+        // any key press will close help
+        self.help = false;
+
         if let Ok(action) = key.try_into() {
             self.dispatch(action, frame);
         }
     }
 
     pub fn dispatch(&mut self, action: Action, frame: &Frame) {
-        // any action will close help
-        self.help = false;
-
         let area = frame.area();
         match action {
             Action::Quit => self.exit = true,
