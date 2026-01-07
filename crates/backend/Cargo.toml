@@ -4,6 +4,25 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-axum = "0.8.8"
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+eyre.workspace = true
+
+dashmap = "6.1.0"
+futures = "0.3.31"
+url = "2.5.8"
+axum = { version = "0.8.8" }
 tokio = { version = "1", features = ["full"] }
-clap = { workspace = true }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.22", features = ["fmt", "env-filter"] }
+tower-http = { version = "0.6.8", features = ["trace"] }
+
+alloy-consensus = { version = "1.3.0" }
+alloy-network = { version = "1.3.0" }
+alloy-primitives = { version = "1.3.0" }
+alloy-provider = { version = "1.3.0" }
+alloy-rpc-types = { version = "1.3.0" }
+alloy-chains = { version = "0.2.24" }
+foundry-config = { git = "https://github.com/foundry-rs/foundry", branch = "master" }
+foundry-evm = { git = "https://github.com/foundry-rs/foundry", branch = "master" }

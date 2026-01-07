@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/cli", "crates/tui-app", "crates/web", "crates/backend"]
-default-members = ["crates/cli", "crates/tui-app"]
+default-members = ["crates/cli", "crates/tui-app", "crates/backend"]
 resolver = "2"
 
 [workspace.package]
