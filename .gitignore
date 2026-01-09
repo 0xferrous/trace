@@ -3,4 +3,6 @@ test*.json
 .direnv
 .envrc
 result
+result-cli
+result-backend
 dist
