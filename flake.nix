@@ -87,6 +87,7 @@
             trunk
             pkg-config
             openssl
+            just
             (rust-bin.selectLatestNightlyWith (
               toolchain:
               toolchain.default.override {
