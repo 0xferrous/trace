@@ -33,8 +33,12 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - name: Build Docker image
-        run: nix build .#docker-image
+      - name: Build Docker images
+        run: |
+          nix build .#docker-image-cli
+          cp result result-cli
+          nix build .#docker-image-backend
+          cp result result-backend
 
       - name: Log in to GitHub Container Registry
         if: github.event_name != 'pull_request'
@@ -47,22 +51,33 @@ jobs:
       - name: Extract metadata
         id: meta
         run: |
-          IMAGE_TAG="${REGISTRY}/${IMAGE_NAME}:latest"
+          CLI_TAG="${REGISTRY}/${IMAGE_NAME}-cli:latest"
+          BACKEND_TAG="${REGISTRY}/${IMAGE_NAME}-backend:latest"
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             VERSION="${{ github.ref_name }}"
-            IMAGE_TAG="${REGISTRY}/${IMAGE_NAME}:${VERSION}"
+            CLI_TAG="${REGISTRY}/${IMAGE_NAME}-cli:${VERSION}"
+            BACKEND_TAG="${REGISTRY}/${IMAGE_NAME}-backend:${VERSION}"
           fi
-          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "cli-tag=${CLI_TAG}" >> $GITHUB_OUTPUT
+          echo "backend-tag=${BACKEND_TAG}" >> $GITHUB_OUTPUT
 
-      - name: Load and push Docker image
+      - name: Load and push Docker images
         if: github.event_name != 'pull_request'
         run: |
-          docker load < result
-          docker tag traces-tui:latest ${{ steps.meta.outputs.image-tag }}
-          docker push ${{ steps.meta.outputs.image-tag }}
+          # Load and push CLI image
+          docker load < result-cli
+          docker tag traces-cli:latest ${{ steps.meta.outputs.cli-tag }}
+          docker push ${{ steps.meta.outputs.cli-tag }}
 
-          # Also push latest tag on main/master branch
+          # Load and push backend image
+          docker load < result-backend
+          docker tag traces-backend:latest ${{ steps.meta.outputs.backend-tag }}
+          docker push ${{ steps.meta.outputs.backend-tag }}
+
+          # Also push latest tags on main/master branch
           if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            docker tag traces-tui:latest ${REGISTRY}/${IMAGE_NAME}:latest
-            docker push ${REGISTRY}/${IMAGE_NAME}:latest
+            docker tag traces-cli:latest ${REGISTRY}/${IMAGE_NAME}-cli:latest
+            docker push ${REGISTRY}/${IMAGE_NAME}-cli:latest
+            docker tag traces-backend:latest ${REGISTRY}/${IMAGE_NAME}-backend:latest
+            docker push ${REGISTRY}/${IMAGE_NAME}-backend:latest
           fi
