@@ -105,6 +105,7 @@
             backend
             docker-image-cli
             docker-image-backend
+            cargoArtifacts
             ;
         };
       }
