@@ -7,10 +7,22 @@ on:
       - master
     tags:
       - 'v*'
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'crates/backend/**'
+      - 'crates/tui-app/**'
+      - 'crates/cli/**'
   pull_request:
     branches:
       - main
       - master
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'crates/backend/**'
+      - 'crates/tui-app/**'
+      - 'crates/cli/**'
 
 env:
   REGISTRY: ghcr.io

@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'crates/tui-app/**'
+      - 'crates/web/**'
   workflow_dispatch:
 
 permissions:
