@@ -13,7 +13,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::window;
 use web_sys::{console, wasm_bindgen::JsValue};
 
-use tui_app::Tui;
+use tui_app::{SelectionStyle, Tui};
 
 mod utils;
 
@@ -21,6 +21,10 @@ use crate::utils::{BufferedKeyEvents, log_err, log_info};
 use multi_backend::backend::{BackendType, MultiBackendBuilder};
 
 const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
+
+// Gruvbox Dark theme colors
+const SELECTION_FG: Color = Color::Rgb(0xeb, 0xdb, 0xb2);
+const SELECTION_BG: Color = Color::Rgb(0xd6, 0x5d, 0x0e);
 
 async fn entrypoint() -> io::Result<()> {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -58,7 +62,13 @@ async fn entrypoint() -> io::Result<()> {
 
     let data = serde_json::from_str(EXAMPLE_TRACE)?;
     let (sender, receiver) = std::sync::mpsc::channel::<Vec<KeyCode>>();
-    let mut tui = Tui::new(data);
+
+    // Use Gruvbox Dark theme selection colors
+    let selection_style = SelectionStyle {
+        fg: Some(SELECTION_FG),
+        bg: Some(SELECTION_BG),
+    };
+    let mut tui = Tui::with_selection_style(data, selection_style);
     let debounced = BufferedKeyEvents::new(sender);
 
     terminal.on_key_event({
@@ -137,8 +147,8 @@ fn gruvbox_dark() -> Theme {
         // Cursor colors
         .cursor_color(Color::Rgb(0xbd, 0xae, 0x93)) // cursor
         .cursor_text_color(Color::Rgb(0x66, 0x5c, 0x54)) // cursor_text_color
-        // Selection colors
-        .selection_foreground(Color::Rgb(0xeb, 0xdb, 0xb2)) // selection_foreground
-        .selection_background(Color::Rgb(0xd6, 0x5d, 0x0e)) // selection_background (orange)
+        // Selection colors (shared with TUI selection style)
+        .selection_foreground(SELECTION_FG)
+        .selection_background(SELECTION_BG)
         .build()
 }

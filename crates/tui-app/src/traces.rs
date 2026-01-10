@@ -4,7 +4,7 @@ use revm_inspectors::tracing::{
     types::{CallTraceNode, TraceMemberOrder},
 };
 
-use crate::trace_writer::TraceTextWriter;
+use crate::trace_writer::{SelectionStyle, TraceTextWriter};
 
 fn is_returning_node(node: &CallTraceNode) -> bool {
     let val = node.trace.status.unwrap_or_default() as u8;
@@ -372,8 +372,8 @@ impl TracesState {
     }
 
     /// Convert the trace state to formatted text for display
-    pub fn to_text(&self, highlight_active: bool) -> eyre::Result<Text<'static>> {
-        TraceTextWriter::new(highlight_active).write_to_text(self)
+    pub fn to_text(&self, selection_style: Option<SelectionStyle>) -> eyre::Result<Text<'static>> {
+        TraceTextWriter::new(selection_style).write_to_text(self)
     }
 
     /// Reset the state to initial values (used in tests)
@@ -394,7 +394,7 @@ mod tests {
     use revm_inspectors::tracing::CallTraceArena;
     use simplelog::WriteLogger;
 
-    use crate::{TracesState, trace_writer::RETURN};
+    use crate::{SelectionStyle, TracesState, trace_writer::RETURN};
 
     /// Test helper for validating trace navigation
     struct NavigationTestHelper<'a> {
@@ -406,7 +406,7 @@ mod tests {
 
     impl<'a> NavigationTestHelper<'a> {
         fn new(state: TracesState) -> Self {
-            let text = state.to_text(true).unwrap();
+            let text = state.to_text(Some(SelectionStyle::default())).unwrap();
             Self {
                 state,
                 text,
@@ -495,7 +495,7 @@ mod tests {
         }
 
         fn refresh_text(&mut self) {
-            self.text = self.state.to_text(true).unwrap();
+            self.text = self.state.to_text(Some(SelectionStyle::default())).unwrap();
         }
 
         fn format_trace_context(&self, expected: usize, curr: usize) -> String {

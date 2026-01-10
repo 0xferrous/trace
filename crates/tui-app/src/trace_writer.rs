@@ -9,6 +9,22 @@ use revm_inspectors::tracing::types::{
 
 use crate::{TracesState, traces::ActiveItem};
 
+/// Styling configuration for selected/active lines
+#[derive(Debug, Clone, Copy)]
+pub struct SelectionStyle {
+    pub fg: Option<Color>,
+    pub bg: Option<Color>,
+}
+
+impl Default for SelectionStyle {
+    fn default() -> Self {
+        Self {
+            fg: None,
+            bg: Some(Color::Gray),
+        }
+    }
+}
+
 pub const EMPTY: &str = "    ";
 pub const PIPE: &str = "  │ ";
 pub const EDGE: &str = "  └─ ";
@@ -21,21 +37,44 @@ pub const SYM_EXPANDED: &str = "◆";
 pub struct TraceTextWriter {
     lines: Vec<Line<'static>>,
     indentation_level: usize,
-    highlight_active: bool,
+    selection_style: Option<SelectionStyle>,
 }
 
 impl TraceTextWriter {
-    pub fn new(highlight_active: bool) -> Self {
+    pub fn new(selection_style: Option<SelectionStyle>) -> Self {
         Self {
             lines: Vec::new(),
             indentation_level: 0,
-            highlight_active,
+            selection_style,
         }
     }
 
     pub fn write_to_text(mut self, state: &TracesState) -> eyre::Result<Text<'static>> {
         self.write_node(state, 0)?;
         Ok(Text::from(self.lines))
+    }
+
+    fn apply_selection_style(&self, line: Line<'static>) -> Line<'static> {
+        if let Some(style) = self.selection_style {
+            // Strip all existing styles from spans and apply only selection colors
+            let spans: Vec<Span<'static>> = line
+                .spans
+                .into_iter()
+                .map(|span| {
+                    let mut new_span = Span::raw(span.content);
+                    if let Some(fg) = style.fg {
+                        new_span = new_span.fg(fg);
+                    }
+                    if let Some(bg) = style.bg {
+                        new_span = new_span.bg(bg);
+                    }
+                    new_span
+                })
+                .collect();
+            Line::from(spans)
+        } else {
+            line
+        }
     }
 
     fn trace_style(trace: &CallTrace) -> Style {
@@ -128,13 +167,13 @@ impl TraceTextWriter {
 
         // Trace header
         self.write_trace_header_spans(&mut spans, &node.trace)?;
-        let mut line = Line::from(spans);
-        if idx == state.active_call.idx
-            && state.active_call.active_item.is_call_header()
-            && self.highlight_active
+        let line = Line::from(spans);
+        let line = if idx == state.active_call.idx && state.active_call.active_item.is_call_header()
         {
-            line = line.on_gray();
-        }
+            self.apply_selection_style(line)
+        } else {
+            line
+        };
         self.lines.push(line);
 
         // Only write children and footer if not collapsed
@@ -148,10 +187,14 @@ impl TraceTextWriter {
             footer_spans.push(Span::raw(indent));
             footer_spans.push(Span::raw(EDGE.to_string()));
             self.write_trace_footer_spans(&mut footer_spans, &node.trace)?;
-            let mut line = Line::from(footer_spans);
-            if state.active_call.idx == idx && state.active_call.active_item.is_returning_value() {
-                line = line.on_gray();
-            }
+            let line = Line::from(footer_spans);
+            let line = if state.active_call.idx == idx
+                && state.active_call.active_item.is_returning_value()
+            {
+                self.apply_selection_style(line)
+            } else {
+                line
+            };
             self.lines.push(line);
 
             self.indentation_level -= 1;
@@ -310,9 +353,8 @@ impl TraceTextWriter {
         let line = if let ActiveItem::Item(curr_order_idx) = state.active_call.active_item
             && state.active_call.idx == node_idx
             && order_idx == curr_order_idx
-            && self.highlight_active
         {
-            line.on_gray()
+            self.apply_selection_style(line)
         } else {
             line
         };

@@ -13,7 +13,7 @@ use ratatui::{
 };
 use revm_inspectors::tracing::CallTraceArena;
 
-use crate::{bindings::Action, traces::TracesState};
+use crate::{SelectionStyle, bindings::Action, traces::TracesState};
 
 pub struct Tui {
     trace_state: TracesState,
@@ -23,12 +23,20 @@ pub struct Tui {
     last_frames: u64,
     last_render: Instant,
     help: bool,
+    selection_style: SelectionStyle,
 }
 
 const ONE_SEC: Duration = Duration::from_secs(1);
 
 impl Tui {
     pub fn new(trace_data: CallTraceArena) -> Self {
+        Self::with_selection_style(trace_data, SelectionStyle::default())
+    }
+
+    pub fn with_selection_style(
+        trace_data: CallTraceArena,
+        selection_style: SelectionStyle,
+    ) -> Self {
         Self {
             exit: false,
             scroll_offset: (0, 0),
@@ -37,12 +45,16 @@ impl Tui {
             last_frames: 0,
             last_render: Instant::now(),
             help: false,
+            selection_style,
         }
     }
 
     pub fn draw(&mut self, frame: &mut Frame) -> TuiResult<()> {
         // render the trace
-        let result: TuiResult<_> = self.trace_state.to_text(true).map_err(|err| err.into());
+        let result: TuiResult<_> = self
+            .trace_state
+            .to_text(Some(self.selection_style))
+            .map_err(|err| err.into());
         let text_widget = result?;
         let para = Paragraph::new(text_widget).scroll((self.scroll_offset.0, self.scroll_offset.1));
         frame.render_widget(
@@ -139,7 +151,12 @@ impl Tui {
             }
             Action::GoToBottom => {
                 self.trace_state.last();
-                let n_lines = self.trace_state.to_text(true).unwrap().lines.len();
+                let n_lines = self
+                    .trace_state
+                    .to_text(Some(self.selection_style))
+                    .unwrap()
+                    .lines
+                    .len();
                 self.scroll_offset.0 = n_lines as u16 - area.height + 2;
             }
             Action::Up => {
