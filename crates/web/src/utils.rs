@@ -4,6 +4,7 @@ use std::{
     sync::{RwLock, mpsc::Sender},
 };
 
+use js_sys::Date;
 use ratzilla::event::KeyCode;
 use wasm_bindgen::{JsCast, JsValue, prelude::Closure};
 use web_sys::console;
@@ -63,8 +64,10 @@ pub fn log_err<T: Debug>(msg: &str, ctx: Option<T>) {
 }
 
 pub fn log_info<T: Debug>(msg: &str, ctx: Option<T>) {
+    let now = Date::new_0();
+
     console::log_2(
-        &JsValue::from_str(msg),
+        &JsValue::from_str(&format!("[{}] {msg}", now.to_string())),
         &JsValue::from_str(ctx.map(|f| format!("{f:?}")).unwrap_or_default().as_str()),
     );
 }

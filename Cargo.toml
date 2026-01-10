@@ -21,6 +21,7 @@ revm-inspectors = { version = "0.33.2" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.147"
 ratzilla = "0.2.0"
+futures = "0.3.31"
 
 # Workspace member crates
 tui-app = { path = "crates/tui-app" }
@@ -38,3 +39,4 @@ simplelog = "0.12.2"
 ratzilla = { git = "https://github.com/0xferrous/ratzilla", branch = "merged-branches" }
 ratatui = { git = "https://github.com/ratatui/ratatui" }
 # ratzilla = { path = "../open-source/ratzilla/" }
+beamterm-renderer = { git = "https://github.com/junkdog/beamterm", branch = "main" }

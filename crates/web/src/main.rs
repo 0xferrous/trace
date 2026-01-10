@@ -1,3 +1,4 @@
+use futures::FutureExt;
 use ratzilla::WebRenderer;
 use ratzilla::{
     FontAtlasConfig, SelectionMode,
@@ -5,21 +6,47 @@ use ratzilla::{
     event::{KeyCode, MouseEventKind, ScrollDelta},
 };
 use std::io;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::window;
 use web_sys::{console, wasm_bindgen::JsValue};
 
 use tui_app::Tui;
 
 mod utils;
 
-use crate::utils::BufferedKeyEvents;
+use crate::utils::{BufferedKeyEvents, log_err, log_info};
 use multi_backend::backend::{BackendType, MultiBackendBuilder};
 
 const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
 
-fn main() -> io::Result<()> {
+async fn entrypoint() -> io::Result<()> {
+    log_info("waiting for the fonts to load", None::<()>);
+    async {
+        let fonts = window()
+            .expect("window not found")
+            .document()
+            .expect("document not found")
+            .fonts();
+
+        let promise = fonts
+            .ready()
+            .expect("error getting the window.document.ready promise");
+        JsFuture::from(promise)
+            .await
+            .expect("error waiting for fonts to load");
+        log_info("fonts loaded", None::<()>);
+
+        fonts.entries()
+    }
+    .await;
+
+    log_info("starting app", None::<()>);
+
     let terminal = MultiBackendBuilder::with_fallback(BackendType::WebGl2)
         .webgl2_options(
-            WebGl2BackendOptions::new().enable_mouse_selection_with_mode(SelectionMode::Linear), // .font_atlas_config(FontAtlasConfig::Dynamic(vec!["Fira Code".to_string()], 30.)),
+            WebGl2BackendOptions::new()
+                .enable_mouse_selection_with_mode(SelectionMode::Linear)
+                .font_atlas_config(FontAtlasConfig::Dynamic(vec!["Fira Code".to_string()], 16.)),
         )
         .build_terminal()?;
 
@@ -69,4 +96,12 @@ fn main() -> io::Result<()> {
     });
 
     Ok(())
+}
+
+fn main() {
+    wasm_bindgen_futures::spawn_local(entrypoint().map(|res| {
+        if let Err(err) = res {
+            log_err("entrypoint exited", Some(err));
+        }
+    }));
 }

@@ -12,9 +12,18 @@ getrandom_v2 = { package = "getrandom", version = "0.2.16", features = ["js"] }
 revm-inspectors.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-web-sys = { version = "0.3.83", features = ["console", "Window"] }
+web-sys = { version = "0.3.83", features = [
+  "console",
+  "Window",
+  "Document",
+  "FontFaceSet",
+  "FontFaceSetIterator",
+  "FontFaceSetIteratorResult",
+] }
 wasm-bindgen = "0.2.106"
+wasm-bindgen-futures = "0.4.56"
 js-sys = "0.3.83"
 web-time.workspace = true
+futures.workspace = true
 
 multi_backend = { package = "examples-shared", git = "https://github.com/0xferrous/ratzilla", branch = "merged-branches", subdir = "examples/shared" }
