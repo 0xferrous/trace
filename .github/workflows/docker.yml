@@ -71,4 +71,4 @@ jobs:
           REGISTRY: ${{ env.REGISTRY }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           VERSION: ${{ steps.version.outputs.version }}
-        run: nix develop --keep-env-var REGISTRY --keep-env-var IMAGE_NAME --keep-env-var VERSION --command just docker-publish
+        run: nix develop --command just docker-publish
