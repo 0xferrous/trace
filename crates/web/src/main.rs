@@ -1,9 +1,12 @@
 use futures::FutureExt;
+use ratzilla::Theme;
 use ratzilla::WebRenderer;
+use ratzilla::ratatui::{backend::Backend, widgets::Clear};
 use ratzilla::{
     FontAtlasConfig, SelectionMode,
     backend::webgl2::WebGl2BackendOptions,
     event::{KeyCode, MouseEventKind, ScrollDelta},
+    ratatui::style::Color,
 };
 use std::io;
 use wasm_bindgen_futures::JsFuture;
@@ -38,13 +41,20 @@ async fn entrypoint() -> io::Result<()> {
 
     log_info("starting app", None::<()>);
 
-    let terminal = MultiBackendBuilder::with_fallback(BackendType::WebGl2)
+    let mut terminal = MultiBackendBuilder::with_fallback(BackendType::WebGl2)
         .webgl2_options(
             WebGl2BackendOptions::new()
                 .enable_mouse_selection_with_mode(SelectionMode::Linear)
                 .font_atlas_config(FontAtlasConfig::Dynamic(vec![font.to_string()], 16.)),
         )
+        .theme(gruvbox_dark())
         .build_terminal()?;
+    {
+        terminal
+            .backend_mut()
+            .clear()
+            .expect("unable to clear terminal");
+    }
 
     let data = serde_json::from_str(EXAMPLE_TRACE)?;
     let (sender, receiver) = std::sync::mpsc::channel::<Vec<KeyCode>>();
@@ -100,4 +110,35 @@ fn main() {
             log_err("entrypoint exited", Some(err));
         }
     }));
+}
+
+fn gruvbox_dark() -> Theme {
+    Theme::builder()
+        // ANSI colors (0-15)
+        .palette_color(0, Color::Rgb(0x3c, 0x38, 0x36)) // color0 - dark gray
+        .palette_color(1, Color::Rgb(0xcc, 0x24, 0x1d)) // color1 - red
+        .palette_color(2, Color::Rgb(0x98, 0x97, 0x1a)) // color2 - green
+        .palette_color(3, Color::Rgb(0xd7, 0x99, 0x21)) // color3 - yellow
+        .palette_color(4, Color::Rgb(0x45, 0x85, 0x88)) // color4 - blue
+        .palette_color(5, Color::Rgb(0xb1, 0x62, 0x86)) // color5 - magenta
+        .palette_color(6, Color::Rgb(0x68, 0x9d, 0x6a)) // color6 - cyan
+        .palette_color(7, Color::Rgb(0xa8, 0x99, 0x84)) // color7 - light gray
+        .palette_color(8, Color::Rgb(0x92, 0x83, 0x74)) // color8 - bright black
+        .palette_color(9, Color::Rgb(0xfb, 0x49, 0x34)) // color9 - bright red
+        .palette_color(10, Color::Rgb(0xb8, 0xbb, 0x26)) // color10 - bright green
+        .palette_color(11, Color::Rgb(0xfa, 0xbd, 0x2f)) // color11 - bright yellow
+        .palette_color(12, Color::Rgb(0x83, 0xa5, 0x98)) // color12 - bright blue
+        .palette_color(13, Color::Rgb(0xd3, 0x86, 0x9b)) // color13 - bright magenta
+        .palette_color(14, Color::Rgb(0x8e, 0xc0, 0x7c)) // color14 - bright cyan
+        .palette_color(15, Color::Rgb(0xfb, 0xf1, 0xc7)) // color15 - bright white
+        // Default colors
+        .foreground(Color::Rgb(0xeb, 0xdb, 0xb2)) // foreground
+        .background(Color::Rgb(0x1d, 0x20, 0x21)) // background
+        // Cursor colors
+        .cursor_color(Color::Rgb(0xbd, 0xae, 0x93)) // cursor
+        .cursor_text_color(Color::Rgb(0x66, 0x5c, 0x54)) // cursor_text_color
+        // Selection colors
+        .selection_foreground(Color::Rgb(0xeb, 0xdb, 0xb2)) // selection_foreground
+        .selection_background(Color::Rgb(0xd6, 0x5d, 0x0e)) // selection_background (orange)
+        .build()
 }

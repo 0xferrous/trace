@@ -25,5 +25,6 @@ wasm-bindgen-futures = "0.4.56"
 js-sys = "0.3.83"
 web-time.workspace = true
 futures.workspace = true
+console_error_panic_hook = "0.1.7"
 
 multi_backend = { package = "examples-shared", git = "https://github.com/0xferrous/ratzilla", branch = "merged-branches", subdir = "examples/shared" }
