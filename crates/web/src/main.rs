@@ -20,23 +20,19 @@ use multi_backend::backend::{BackendType, MultiBackendBuilder};
 const EXAMPLE_TRACE: &str = include_str!("../example_trace.json");
 
 async fn entrypoint() -> io::Result<()> {
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+
     log_info("waiting for the fonts to load", None::<()>);
+
+    let font = "Fira Code";
     async {
-        let fonts = window()
-            .expect("window not found")
-            .document()
-            .expect("document not found")
-            .fonts();
-
-        let promise = fonts
-            .ready()
-            .expect("error getting the window.document.ready promise");
-        JsFuture::from(promise)
+        let window = window().expect("window not found");
+        let document = window.document().expect("document not found");
+        let fonts = document.fonts();
+        JsFuture::from(fonts.load(&format!("1em '{font}'")))
             .await
-            .expect("error waiting for fonts to load");
-        log_info("fonts loaded", None::<()>);
-
-        fonts.entries()
+            .expect("error loading fira code");
+        log_info("font loaded", None::<()>);
     }
     .await;
 
@@ -46,7 +42,7 @@ async fn entrypoint() -> io::Result<()> {
         .webgl2_options(
             WebGl2BackendOptions::new()
                 .enable_mouse_selection_with_mode(SelectionMode::Linear)
-                .font_atlas_config(FontAtlasConfig::Dynamic(vec!["Fira Code".to_string()], 16.)),
+                .font_atlas_config(FontAtlasConfig::Dynamic(vec![font.to_string()], 16.)),
         )
         .build_terminal()?;
 
