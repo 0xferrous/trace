@@ -32,7 +32,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v8
 
       - name: Build
-        run: nix develop --command trunk build --config ./crates/web/trunk.toml --release --public-url /traces-tui/ index.html
+        run: nix develop --command trunk build --config ./crates/web/trunk.toml --release --public-url /trace/ index.html
 
       - name: Copy index.html to 404.html
         run: cp ./crates/web/dist/index.html ./crates/web/dist/404.html
