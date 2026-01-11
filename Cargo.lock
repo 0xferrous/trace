@@ -1360,32 +1360,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b7e4c2464d97fe331d41de9d5db0def0a96f4d823b8b32a2efd503578988973"
 
 [[package]]
-name = "backend"
-version = "0.1.0"
-dependencies = [
- "alloy-chains",
- "alloy-consensus",
- "alloy-network",
- "alloy-primitives",
- "alloy-provider",
- "alloy-rpc-types",
- "axum",
- "clap",
- "dashmap",
- "eyre",
- "foundry-config",
- "foundry-evm",
- "futures",
- "serde",
- "serde_json",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber 0.3.22",
- "url",
-]
-
-[[package]]
 name = "backtrace"
 version = "0.3.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2612,7 +2586,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2680,7 +2654,7 @@ dependencies = [
 [[package]]
 name = "examples-shared"
 version = "0.1.0"
-source = "git+https://github.com/0xferrous/ratzilla?branch=merged-branches#1d7d95153f900eb719de1d76996dbc240e1106de"
+source = "git+https://github.com/0xferrous/ratzilla?branch=merged-branches#ab0d73dccd2ab6e092669269bfda75b29f7e0219"
 dependencies = [
  "ratzilla",
  "wasm-bindgen",
@@ -4149,7 +4123,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5634,7 +5608,7 @@ dependencies = [
 [[package]]
 name = "ratzilla"
 version = "0.2.0"
-source = "git+https://github.com/0xferrous/ratzilla?branch=merged-branches#1d7d95153f900eb719de1d76996dbc240e1106de"
+source = "git+https://github.com/0xferrous/ratzilla?branch=merged-branches#ab0d73dccd2ab6e092669269bfda75b29f7e0219"
 dependencies = [
  "beamterm-renderer",
  "bitvec",
@@ -6252,7 +6226,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7273,7 +7247,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7685,7 +7659,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
 
 [[package]]
-name = "traces-cli"
+name = "trace-backend"
+version = "0.1.0"
+dependencies = [
+ "alloy-chains",
+ "alloy-consensus",
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-provider",
+ "alloy-rpc-types",
+ "axum",
+ "clap",
+ "dashmap",
+ "eyre",
+ "foundry-config",
+ "foundry-evm",
+ "futures",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber 0.3.22",
+ "url",
+]
+
+[[package]]
+name = "trace-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -7697,7 +7697,47 @@ dependencies = [
  "serde",
  "serde_json",
  "simplelog",
- "tui-app",
+ "trace-tui",
+]
+
+[[package]]
+name = "trace-tui"
+version = "0.1.0"
+dependencies = [
+ "alloy-primitives",
+ "crossterm",
+ "eyre",
+ "getrandom 0.2.16",
+ "log",
+ "ratatui",
+ "ratzilla",
+ "revm-inspectors",
+ "serde_json",
+ "simplelog",
+ "thiserror 2.0.17",
+ "web-time",
+]
+
+[[package]]
+name = "trace-web"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "examples-shared",
+ "eyre",
+ "futures",
+ "getrandom 0.2.16",
+ "getrandom 0.3.4",
+ "js-sys",
+ "ratzilla",
+ "revm-inspectors",
+ "serde",
+ "serde_json",
+ "trace-tui",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "web-time",
 ]
 
 [[package]]
@@ -7800,46 +7840,6 @@ name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
-
-[[package]]
-name = "tui-app"
-version = "0.1.0"
-dependencies = [
- "alloy-primitives",
- "crossterm",
- "eyre",
- "getrandom 0.2.16",
- "log",
- "ratatui",
- "ratzilla",
- "revm-inspectors",
- "serde_json",
- "simplelog",
- "thiserror 2.0.17",
- "web-time",
-]
-
-[[package]]
-name = "tui-web"
-version = "0.1.0"
-dependencies = [
- "console_error_panic_hook",
- "examples-shared",
- "eyre",
- "futures",
- "getrandom 0.2.16",
- "getrandom 0.3.4",
- "js-sys",
- "ratzilla",
- "revm-inspectors",
- "serde",
- "serde_json",
- "tui-app",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "web-time",
-]
 
 [[package]]
 name = "tungstenite"
@@ -8289,7 +8289,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

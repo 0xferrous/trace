@@ -210,13 +210,13 @@ impl ActiveCall {
     }
 }
 
-pub struct TracesState {
+pub struct TraceState {
     pub data: CallTraceArena,
     pub collapsed: Vec<bool>,
     pub active_call: ActiveCall,
 }
 
-impl TracesState {
+impl TraceState {
     pub fn new(data: CallTraceArena) -> Self {
         let len = data.nodes().len();
         Self {
@@ -394,18 +394,18 @@ mod tests {
     use revm_inspectors::tracing::CallTraceArena;
     use simplelog::WriteLogger;
 
-    use crate::{SelectionStyle, TracesState, trace_writer::RETURN};
+    use crate::{SelectionStyle, TraceState, trace_writer::RETURN};
 
     /// Test helper for validating trace navigation
     struct NavigationTestHelper<'a> {
-        state: TracesState,
+        state: TraceState,
         text: Text<'a>,
         /// Current step number in the navigation sequence
         step_count: usize,
     }
 
     impl<'a> NavigationTestHelper<'a> {
-        fn new(state: TracesState) -> Self {
+        fn new(state: TraceState) -> Self {
             let text = state.to_text(Some(SelectionStyle::default())).unwrap();
             Self {
                 state,
@@ -522,7 +522,7 @@ mod tests {
         let test_trace: CallTraceArena = serde_json::from_str(test_trace).unwrap();
         let _ = WriteLogger::init(LevelFilter::Trace, Default::default(), std::io::stdout());
 
-        let mut helper = NavigationTestHelper::new(TracesState::new(test_trace));
+        let mut helper = NavigationTestHelper::new(TraceState::new(test_trace));
 
         // Test: Initial state should be at first position
         helper.assert_correct_position("initial state");

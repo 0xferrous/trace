@@ -1,7 +1,7 @@
 use futures::FutureExt;
 use ratzilla::Theme;
 use ratzilla::WebRenderer;
-use ratzilla::ratatui::{backend::Backend, widgets::Clear};
+use ratzilla::ratatui::backend::Backend;
 use ratzilla::{
     FontAtlasConfig, SelectionMode,
     backend::webgl2::WebGl2BackendOptions,
@@ -13,7 +13,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::window;
 use web_sys::{console, wasm_bindgen::JsValue};
 
-use tui_app::{SelectionStyle, Tui};
+use trace_tui::{SelectionStyle, Tui};
 
 mod utils;
 

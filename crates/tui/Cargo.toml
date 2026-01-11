@@ -1,5 +1,5 @@
 [package]
-name = "tui-app"
+name = "trace-tui"
 version.workspace = true
 edition.workspace = true
 

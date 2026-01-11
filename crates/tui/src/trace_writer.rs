@@ -7,7 +7,7 @@ use revm_inspectors::tracing::types::{
     CallKind, CallTrace, DecodedCallData, DecodedTraceStep, TraceMemberOrder,
 };
 
-use crate::{TracesState, traces::ActiveItem};
+use crate::{TraceState, trace::ActiveItem};
 
 /// Styling configuration for selected/active lines
 #[derive(Debug, Clone, Copy)]
@@ -49,7 +49,7 @@ impl TraceTextWriter {
         }
     }
 
-    pub fn write_to_text(mut self, state: &TracesState) -> eyre::Result<Text<'static>> {
+    pub fn write_to_text(mut self, state: &TraceState) -> eyre::Result<Text<'static>> {
         self.write_node(state, 0)?;
         Ok(Text::from(self.lines))
     }
@@ -71,7 +71,18 @@ impl TraceTextWriter {
                     new_span
                 })
                 .collect();
-            Line::from(spans)
+            let line = Line::from(spans);
+            let line = if let Some(fg) = style.fg {
+                line.fg(fg)
+            } else {
+                line
+            };
+            let line = if let Some(bg) = style.bg {
+                line.bg(bg)
+            } else {
+                line
+            };
+            line
         } else {
             line
         }
@@ -107,7 +118,7 @@ impl TraceTextWriter {
 
     fn write_item(
         &mut self,
-        state: &TracesState,
+        state: &TraceState,
         node_idx: usize,
         item_idx: usize,
     ) -> eyre::Result<usize> {
@@ -127,7 +138,7 @@ impl TraceTextWriter {
 
     fn write_items_until(
         &mut self,
-        state: &TracesState,
+        state: &TraceState,
         node_idx: usize,
         first_item_idx: usize,
         f: impl Fn(usize) -> bool,
@@ -139,13 +150,13 @@ impl TraceTextWriter {
         Ok(item_idx)
     }
 
-    fn write_items(&mut self, state: &TracesState, node_idx: usize) -> eyre::Result<()> {
+    fn write_items(&mut self, state: &TraceState, node_idx: usize) -> eyre::Result<()> {
         let items_cnt = state.data.nodes()[node_idx].ordering.len();
         self.write_items_until(state, node_idx, 0, |idx| idx == items_cnt)?;
         Ok(())
     }
 
-    fn write_node(&mut self, state: &TracesState, idx: usize) -> eyre::Result<()> {
+    fn write_node(&mut self, state: &TraceState, idx: usize) -> eyre::Result<()> {
         let node = &state.data.nodes()[idx];
         let is_collapsed = state.collapsed[idx];
 
@@ -302,7 +313,7 @@ impl TraceTextWriter {
 
     fn write_log(
         &mut self,
-        state: &TracesState,
+        state: &TraceState,
         node_idx: usize,
         log_idx: usize,
         order_idx: usize,
@@ -364,7 +375,7 @@ impl TraceTextWriter {
 
     fn write_step(
         &mut self,
-        state: &TracesState,
+        state: &TraceState,
         node_idx: usize,
         item_idx: usize,
         step_idx: usize,

@@ -26,7 +26,7 @@ use url::Url;
 /// NOTE: copied from foundry
 #[allow(dead_code)]
 #[instrument(skip(provider, url))]
-pub async fn get_transaction_traces(
+pub async fn get_transaction_trace(
     provider: impl Provider,
     url: &Url,
     tx_hash: TxHash,
@@ -148,7 +148,7 @@ fn ethereum_tx_to_any_tx(
 }
 
 #[instrument(skip(url))]
-pub async fn get_transaction_traces_cast(
+pub async fn get_transaction_trace_cast(
     url: &Url,
     tx_hash: TxHash,
     replay: bool,

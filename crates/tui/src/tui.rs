@@ -13,10 +13,10 @@ use ratatui::{
 };
 use revm_inspectors::tracing::CallTraceArena;
 
-use crate::{SelectionStyle, bindings::Action, traces::TracesState};
+use crate::{SelectionStyle, bindings::Action, trace::TraceState};
 
 pub struct Tui {
-    trace_state: TracesState,
+    trace_state: TraceState,
     scroll_offset: (u16, u16),
     exit: bool,
     frames: u64,
@@ -40,7 +40,7 @@ impl Tui {
         Self {
             exit: false,
             scroll_offset: (0, 0),
-            trace_state: TracesState::new(trace_data),
+            trace_state: TraceState::new(trace_data),
             frames: 0,
             last_frames: 0,
             last_render: Instant::now(),

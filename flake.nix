@@ -1,5 +1,5 @@
 {
-  description = "traces-tui - A Rust TUI application";
+  description = "trace";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -43,12 +43,12 @@
 
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
-        traces-cli = craneLib.buildPackage (
+        trace-cli = craneLib.buildPackage (
           commonArgs
           // {
             inherit cargoArtifacts;
-            pname = "traces-cli";
-            cargoExtraArgs = "-p traces-cli";
+            pname = "trace-cli";
+            cargoExtraArgs = "-p trace-cli";
           }
         );
 
@@ -62,17 +62,17 @@
         );
 
         docker-image-cli = pkgs.dockerTools.buildLayeredImage {
-          name = "traces-cli";
+          name = "trace-cli";
           tag = "latest";
-          contents = [ traces-cli ];
+          contents = [ trace-cli ];
           config = {
-            Cmd = [ "${traces-cli}/bin/traces-cli" ];
-            Env = [ "PATH=${pkgs.lib.makeBinPath [ traces-cli ]}" ];
+            Cmd = [ "${trace-cli}/bin/trace-cli" ];
+            Env = [ "PATH=${pkgs.lib.makeBinPath [ trace-cli ]}" ];
           };
         };
 
         docker-image-backend = pkgs.dockerTools.buildLayeredImage {
-          name = "traces-backend";
+          name = "trace-backend";
           tag = "latest";
           contents = [ backend ];
           config = {
@@ -99,9 +99,9 @@
         };
 
         packages = {
-          default = traces-cli;
+          default = trace-cli;
           inherit
-            traces-cli
+            trace-cli
             backend
             docker-image-cli
             docker-image-backend

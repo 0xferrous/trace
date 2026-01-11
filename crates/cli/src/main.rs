@@ -15,7 +15,7 @@ use std::{
     path::PathBuf,
     time::Duration,
 };
-use tui_app::{TracesState, Tui};
+use trace_tui::{TraceState, Tui};
 
 #[derive(clap::Parser, Debug)]
 struct Args {
@@ -74,7 +74,7 @@ fn main() -> eyre::Result<()> {
                 let to_string = String::from_utf8(trace_writer.into_writer())?;
                 println!("{to_string}");
             } else {
-                let trace_state = TracesState::new(data);
+                let trace_state = TraceState::new(data);
                 let text = trace_state.to_text(None)?;
                 let mut stdout = std::io::stdout();
 
@@ -102,7 +102,7 @@ fn main() -> eyre::Result<()> {
                 std::fs::OpenOptions::new()
                     .create(true)
                     .append(true)
-                    .open("/tmp/traces-cli.log")?,
+                    .open("/tmp/trace-cli.log")?,
             )?;
 
             let data = args.data()?;
