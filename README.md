@@ -22,8 +22,7 @@ provides an interactive solution with the same powerful interface across all pla
 
 **Live Demo**: [https://0xf.rs/trace](https://0xf.rs/trace)
 
-<!-- TODO: Add VHS recording GIF here -->
-<!-- Record demo with: vhs demo.tape -->
+![demo](https://github.com/user-attachments/assets/830cdd00-a6cb-44f8-9be6-1e08a9b20178)
 
 ## 📦 Installation
 
@@ -31,16 +30,16 @@ provides an interactive solution with the same powerful interface across all pla
 
 ```bash
 # Run directly without installing
-cast run <tx-hash> --json --rpc-url <rpc> | nix run github:0xferrous/traces-tui
+cast run <tx-hash> --json --rpc-url <rpc> | nix run github:0xferrous/trace
 
 # Or install to your profile
-nix profile install github:0xferrous/traces-tui
+nix profile install github:0xferrous/trace
 ```
 
 ### Using Cargo
 
 ```bash
-cargo install --git https://github.com/0xferrous/traces-tui trace-cli
+cargo install --git https://github.com/0xferrous/trace trace-cli
 ```
 
 ## 🚀 Usage
@@ -91,10 +90,12 @@ This project demonstrates a powerful pattern: **write once, run everywhere** wit
 [ratatui](https://github.com/ratatui/ratatui).
 
 ```
-┌─────────────────────────────────────────┐
-│         trace-tui (core library)        │
-│         Ratatui-based UI logic          │
-└──────────────┬──────────────────────────┘
+┌─────────────────────────────┐
+│          trace-tui          │
+│          (core lib)         │
+│         Ratatui-based       │
+│           UI logic          │
+└──────────────┬──────────────┘
                │
        ┌───────┴────────┐
        │                │

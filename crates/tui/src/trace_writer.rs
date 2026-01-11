@@ -55,37 +55,40 @@ impl TraceTextWriter {
     }
 
     fn apply_selection_style(&self, line: Line<'static>) -> Line<'static> {
-        if let Some(style) = self.selection_style {
-            // Strip all existing styles from spans and apply only selection colors
-            let spans: Vec<Span<'static>> = line
-                .spans
-                .into_iter()
-                .map(|span| {
-                    let mut new_span = Span::raw(span.content);
-                    if let Some(fg) = style.fg {
-                        new_span = new_span.fg(fg);
-                    }
-                    if let Some(bg) = style.bg {
-                        new_span = new_span.bg(bg);
-                    }
-                    new_span
-                })
-                .collect();
-            let line = Line::from(spans);
-            let line = if let Some(fg) = style.fg {
-                line.fg(fg)
-            } else {
-                line
-            };
-            let line = if let Some(bg) = style.bg {
-                line.bg(bg)
-            } else {
-                line
-            };
-            line
-        } else {
-            line
-        }
+        line.reversed()
+        // TODO: maybe remove this
+        //
+        // if let Some(style) = self.selection_style {
+        //     // Strip all existing styles from spans and apply only selection colors
+        //     let spans: Vec<Span<'static>> = line
+        //         .spans
+        //         .into_iter()
+        //         .map(|span| {
+        //             let mut new_span = Span::raw(span.content);
+        //             if let Some(fg) = style.fg {
+        //                 new_span = new_span.fg(fg);
+        //             }
+        //             if let Some(bg) = style.bg {
+        //                 new_span = new_span.bg(bg);
+        //             }
+        //             new_span
+        //         })
+        //         .collect();
+        //     let line = Line::from(spans);
+        //     let line = if let Some(fg) = style.fg {
+        //         line.fg(fg)
+        //     } else {
+        //         line
+        //     };
+        //     let line = if let Some(bg) = style.bg {
+        //         line.bg(bg)
+        //     } else {
+        //         line
+        //     };
+        //     line
+        // } else {
+        //     line
+        // }
     }
 
     fn trace_style(trace: &CallTrace) -> Style {
