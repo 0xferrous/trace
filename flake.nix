@@ -56,8 +56,8 @@
           commonArgs
           // {
             inherit cargoArtifacts;
-            pname = "backend";
-            cargoExtraArgs = "-p backend";
+            pname = "trace-backend";
+            cargoExtraArgs = "-p trace-backend";
           }
         );
 
@@ -76,7 +76,7 @@
           tag = "latest";
           contents = [ backend ];
           config = {
-            Cmd = [ "${backend}/bin/backend" ];
+            Cmd = [ "${backend}/bin/trace-backend" ];
             Env = [ "PATH=${pkgs.lib.makeBinPath [ backend ]}" ];
           };
         };
