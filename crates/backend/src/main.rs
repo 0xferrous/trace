@@ -17,8 +17,9 @@ use tracing::{Level, Span, level_filters::LevelFilter};
 use tracing_subscriber::EnvFilter;
 use url::Url;
 
-use crate::trace::get_transaction_trace_cast;
+use crate::trace::{Strategy, TraceOpts};
 
+mod convert;
 mod trace;
 
 #[derive(Parser, Debug)]
@@ -82,10 +83,13 @@ async fn get_transaction(
     let chain = chain.parse::<NamedChain>().unwrap();
     let provider = config.providers.get(&chain).unwrap();
     let (url, _) = provider.value();
-    let arena = get_transaction_trace_cast(url, tx_hash.parse().unwrap(), false)
+    let opts = TraceOpts::new(url, tx_hash.parse().unwrap(), false);
+    let arena = opts
+        .get_trace(Strategy::TraceTransactionRpc)
         .await
         .inspect_err(|e| tracing::error!("Failed to get transaction traces: {e:?}"))
         .unwrap();
+
     Json(arena)
 }
 

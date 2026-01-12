@@ -7,7 +7,9 @@ use alloy_consensus::{
 use alloy_network::{AnyTxEnvelope, TransactionResponse};
 use alloy_primitives::TxHash;
 use alloy_provider::Provider;
+use alloy_rpc_client::RpcClient;
 use alloy_rpc_types::{BlockTransactions, transaction::Transaction};
+use alloy_rpc_types_trace::parity::TransactionTrace;
 use eyre::Result;
 use foundry_evm::{
     Env,
@@ -20,6 +22,8 @@ use foundry_evm::{
 use futures::TryFutureExt;
 use tracing::instrument;
 use url::Url;
+
+pub use crate::convert::ParityTraces;
 
 // TODO: need to fix this
 /// Replays a transaction and returns the trace arena data
@@ -207,6 +211,44 @@ pub async fn get_transaction_trace_cast(
             stderr.read_to_string(&mut err_string)?;
             tracing::error!("cast run failed: {:?} err: {err_string}", status.code());
             eyre::bail!("cast run failed: {err_string}")
+        }
+    }
+}
+
+async fn get_transaction_trace_rpc(opts: &TraceOpts<'_>) -> Result<CallTraceArena> {
+    let rpc_client = RpcClient::new_http(opts.url.clone());
+    let trace = rpc_client
+        .request::<(TxHash,), Vec<TransactionTrace>>("trace_transaction", (opts.tx_hash,))
+        .await?;
+    ParityTraces(trace).try_into()
+}
+
+pub enum Strategy {
+    LocalCastRun,
+    TraceTransactionRpc,
+}
+
+pub struct TraceOpts<'a> {
+    url: &'a Url,
+    tx_hash: TxHash,
+    replay: bool,
+}
+
+impl<'a> TraceOpts<'a> {
+    pub fn new(url: &'a Url, tx_hash: TxHash, replay: bool) -> Self {
+        Self {
+            url,
+            tx_hash,
+            replay,
+        }
+    }
+
+    pub async fn get_trace(&self, strategy: Strategy) -> Result<CallTraceArena> {
+        match strategy {
+            Strategy::LocalCastRun => {
+                get_transaction_trace_cast(self.url, self.tx_hash, self.replay).await
+            }
+            Strategy::TraceTransactionRpc => get_transaction_trace_rpc(self).await,
         }
     }
 }

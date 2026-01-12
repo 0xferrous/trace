@@ -4,6 +4,9 @@ build-web:
 serve-web:
     trunk serve --config ./crates/web/trunk.toml -p 1111 index.html
 
+backend:
+    cargo r --bin trace-backend -- -p 2222
+
 # Prefetch flake inputs to avoid duplicate fetching
 flake-prefetch:
     nix flake prefetch
