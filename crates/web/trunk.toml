@@ -16,4 +16,4 @@ target = "index.html"
 # cargo = true
 
 [tools]
-wasm_bindgen = "0.2.106"
+wasm_bindgen = "0.2.108"

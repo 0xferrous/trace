@@ -20,7 +20,7 @@ web-sys = { version = "0.3.83", features = [
   "FontFaceSetIterator",
   "FontFaceSetIteratorResult",
 ] }
-wasm-bindgen = "0.2.106"
+wasm-bindgen = "0.2.108"
 wasm-bindgen-futures = "0.4.56"
 js-sys = "0.3.83"
 web-time.workspace = true
