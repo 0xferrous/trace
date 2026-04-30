@@ -27,7 +27,7 @@
 
         svmReleasesList = pkgs.fetchurl {
           url = "https://binaries.soliditylang.org/linux-amd64/list.json";
-          sha256 = "sha256-L3zgoNUWLfEAFMNtPGTnIkn9+fCwRYNFlv7u8bysS9E=";
+          sha256 = "sha256-ornfHm0ukT9RF2oeLYVBKJP9qjhaRw+3KmBahzmV42c=";
         };
 
         commonArgs = {
